@@ -1,21 +1,11 @@
-import { cn } from "@/lib/utils"
+"use client"
+
+import { AspectRatio as AspectRatioPrimitive } from "radix-ui"
 
 function AspectRatio({
-  ratio,
-  className,
   ...props
 }) {
-  return (
-    <div
-      data-slot="aspect-ratio"
-      style={
-        {
-          "--ratio": ratio
-        }
-      }
-      className={cn("relative aspect-(--ratio)", className)}
-      {...props} />
-  );
+  return <AspectRatioPrimitive.Root data-slot="aspect-ratio" {...props} />;
 }
 
 export { AspectRatio }

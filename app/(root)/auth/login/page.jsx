@@ -1,9 +1,30 @@
-import { Card, CardContent, Form } from '@/components/ui/card'
+'use client'
+import { Card, CardContent } from '@/components/ui/card'
+import { Form } from '@/components/ui/form'
 import React from 'react'
 import Logo from "@/public/assets/images/logo-black.png";
 import Image from 'next/image'
+import { useForm } from 'react-hook-form';
+import { zSchema } from '@/lib/zodSchema';
+import { zodResolver } from '@hookform/resolvers/zod';
 
+const formSchema = zSchema.pick({
+  email: true,
+  password: true
+})
 const LoginPage = () => {
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+      password: ""
+    },
+  });
+
+  const handleLoginSubmit = async (values) => {
+
+  }
+
   return (
     <Card className='w-[450px]'>
       <CardContent>

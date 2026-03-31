@@ -1,7 +1,6 @@
 "use client";
 import * as React from "react"
-import { Toggle as TogglePrimitive } from "@base-ui/react/toggle"
-import { ToggleGroup as ToggleGroupPrimitive } from "@base-ui/react/toggle-group"
+import { ToggleGroup as ToggleGroupPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 import { toggleVariants } from "@/components/ui/toggle"
@@ -23,7 +22,7 @@ function ToggleGroup({
   ...props
 }) {
   return (
-    <ToggleGroupPrimitive
+    <ToggleGroupPrimitive.Root
       data-slot="toggle-group"
       data-variant={variant}
       data-size={size}
@@ -40,7 +39,7 @@ function ToggleGroup({
       <ToggleGroupContext.Provider value={{ variant, size, spacing, orientation }}>
         {children}
       </ToggleGroupContext.Provider>
-    </ToggleGroupPrimitive>
+    </ToggleGroupPrimitive.Root>
   );
 }
 
@@ -54,7 +53,7 @@ function ToggleGroupItem({
   const context = React.useContext(ToggleGroupContext)
 
   return (
-    <TogglePrimitive
+    <ToggleGroupPrimitive.Item
       data-slot="toggle-group-item"
       data-variant={context.variant || variant}
       data-size={context.size || size}
@@ -69,7 +68,7 @@ function ToggleGroupItem({
       )}
       {...props}>
       {children}
-    </TogglePrimitive>
+    </ToggleGroupPrimitive.Item>
   );
 }
 
