@@ -11,6 +11,7 @@ import LoadedButton from '@/components/Application/LoadedButton';
 import { z } from 'zod';
 import { FaRegEyeSlash } from 'react-icons/fa';
 import { FaRegEye } from 'react-icons/fa6';
+import Link from 'next/link';
 
 const formSchema = zSchema.pick({
   email: true
@@ -73,7 +74,16 @@ const LoginPage = () => {
                 text="Login"
                 loading={loading}
                 onClick={handleLoginSubmit}
-                className="cursor-pointer p-5 w-full mt-2 text-[17px] hover:opacity-80" />
+                className="cursor-pointer p-5 w-full mt-2 text-[17px] hover:opacity-80 mb-3" />
+            </div>
+            <div className='text-center'>
+              <div className='flex items-center justify-center gap-1'>
+                <p>Don't have an account?</p>
+                <Link href={''} className='text-primary underline'>Create Account</Link>
+              </div>
+              <div className='mt-2'>
+                <Link href={''} className='text-primary underline'>Forgot Password</Link>
+              </div>
             </div>
           </form>
         </div>
