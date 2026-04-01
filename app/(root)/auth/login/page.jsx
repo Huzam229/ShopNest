@@ -12,6 +12,7 @@ import { z } from 'zod';
 import { FaRegEyeSlash } from 'react-icons/fa';
 import { FaRegEye } from 'react-icons/fa6';
 import Link from 'next/link';
+import { WEBSITE_REGISTER } from '@/routes/WebRoutes';
 
 const formSchema = zSchema.pick({
   email: true
@@ -49,7 +50,7 @@ const LoginPage = () => {
           <form onSubmit={form.handleSubmit(handleLoginSubmit)} className="space-y-4">
             < div className='mb-5'>
               <label>Email</label>
-              <Input placeholder="example@gmail.com" {...form.register("email")} />
+              <Input className={`p-5`} placeholder="example@gmail.com" {...form.register("email")} />
               {form.formState.errors.email && (
                 <p className="text-red-500 text-sm">
                   {form.formState.errors.email.message}
@@ -58,13 +59,13 @@ const LoginPage = () => {
             </div>
             <div className='relative'>
               <label>Password</label>
-              <Input type={isTypePassword ? 'password' : 'text'} placeholder="********" {...form.register("password")} />
+              <Input className={`p-5`} type={isTypePassword ? 'password' : 'text'} placeholder="********" {...form.register("password")} />
               {form.formState.errors.password && (
                 <p className="text-red-500 text-sm">
                   {form.formState.errors.password.message}
                 </p>
               )}
-              <span onClick={() => setIsTypePassword(!isTypePassword)} className='absolute right-3 top-7 cursor-pointer'>
+              <span onClick={() => setIsTypePassword(!isTypePassword)} className='absolute right-3 top-8.5 cursor-pointer'>
                 {isTypePassword ? <FaRegEyeSlash className='h-4 w-4' /> : <FaRegEye className='h-4 w-4' />}
               </span>
             </div>
@@ -79,7 +80,7 @@ const LoginPage = () => {
             <div className='text-center'>
               <div className='flex items-center justify-center gap-1'>
                 <p>Don't have an account?</p>
-                <Link href={''} className='text-primary underline'>Create Account</Link>
+                <Link href={WEBSITE_REGISTER} className='text-primary underline'>Create Account</Link>
               </div>
               <div className='mt-2'>
                 <Link href={''} className='text-primary underline'>Forgot Password</Link>
