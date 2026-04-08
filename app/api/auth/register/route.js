@@ -30,8 +30,7 @@ export async function POST(req) {
         await newUser.save();
 
         const secretKey = new TextEncoder().encode(process.env.JWT_SECRET);
-        const token = await new jose.SignJWT({ id: newUser._id })
-            .setIssuedAt()
+        const token = await new jose.SignJWT({ id: newUser._id.toString() }).setIssuedAt()
             .setExpirationTime('1h')
             .setProtectedHeader({ alg: 'HS256' })
             .sign(secretKey);
