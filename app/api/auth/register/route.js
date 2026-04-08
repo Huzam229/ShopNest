@@ -1,6 +1,6 @@
 import connectDB from "@/lib/db";
 import UserModel from "@/models/user.model";
-import { z } from 'zod';
+import { zSchema } from "@/lib/zodSchema";
 import { errorResponse, response } from "@/lib/helperFunction";
 import * as jose from 'jose'
 import { sendMail } from "@/lib/sendMail";
@@ -11,7 +11,7 @@ export async function POST(req) {
     try {
         await connectDB();
         // validate using zod
-        const validationSchema = z.Schema.pick({
+        const validationSchema = zSchema.pick({
             name: true,
             email: true,
             password: true
@@ -47,6 +47,6 @@ export async function POST(req) {
 
     } catch (error) {
         console.log(error);
-        return errorResponse(false, 500, 'Internal server error');
+        return errorResponse(error);
     }
 }
