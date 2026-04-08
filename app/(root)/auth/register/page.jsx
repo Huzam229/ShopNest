@@ -1,7 +1,7 @@
 'use client'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from "@/components/ui/input";
-import React, { useState } from 'react'
+import { useState } from 'react'
 import Logo from "@/public/assets/images/logo-black.png";
 import Image from 'next/image'
 import { useForm } from 'react-hook-form';
@@ -38,11 +38,34 @@ const RegisterPage = () => {
             confirmPassword: ""
         },
     });
-
-    const handleRegisterSubmit = async (values) => {
-        console.log(values)
+    const handleRegisterSubmit = async (data) => {
+        setloading(true)
+        try {
+            const res = await fetch("/api/auth/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    name: data.name,
+                    email: data.email,
+                    password: data.password
+                })
+            })
+            console.log(res)
+            const result = await res.json();
+            console.log(result)
+            if (!result.success) {
+                throw new Error(result.message)
+            }
+            alert(result.message)
+            form.reset();
+        } catch (error) {
+            alert(error.message)
+        } finally {
+            setloading(false)
+        }
     }
-
     return (
         <Card className='w-[440px]'>
             <CardContent>
@@ -99,7 +122,6 @@ const RegisterPage = () => {
                                 type="submit"
                                 text="Register"
                                 loading={loading}
-                                onClick={handleRegisterSubmit}
                                 className="cursor-pointer p-5 w-full mt-2 text-[17px] hover:opacity-80 mb-3" />
                         </div>
                         <div className='text-center'>
