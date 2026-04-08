@@ -1,8 +1,10 @@
 import connectDB from "@/lib/db";
 import UserModel from "@/models/user.model";
 import { z } from 'zod';
-import response from "@/lib/helperFunction";
+import { errorResponse, response } from "@/lib/helperFunction";
 import * as jose from 'jose'
+import { sendMail } from "@/lib/sendMail";
+import { emailVerificationLink } from "@/email/emailVerificationLink";
 
 
 export async function POST(req) {
@@ -27,18 +29,24 @@ export async function POST(req) {
         const newUser = UserModel({
             name, email, password
         })
+
         await newUser.save();
 
         const secretKey = new TextEncoder().encode(process.env.JWT_SECRET);
-        const token = await new jose.SignJWT({ id: newUser._id }).setIssuedAt()
+
+        const token = await new jose.SignJWT({ id: newUser._id })
+            .setIssuedAt()
             .setExpirationTime('1h')
             .setProtectedHeader({ alg: 'HS256' })
             .sign(secretKey);
 
-        return response(true, 200, 'User registered successfully', { token });
+        await sendMail(email, "Email Verification Request From ShopNest",
+            emailVerificationLink(`${process.env.NEXT_PUBLIC_BASE_URL}/verify-email/${token}`))
+
+        return response(true, 200, 'User registered successfully please verify your email address');
 
     } catch (error) {
         console.log(error);
-        return response(false, 500, 'Internal server error');
+        return errorResponse(false, 500, 'Internal server error');
     }
 }
