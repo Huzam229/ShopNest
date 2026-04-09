@@ -22,19 +22,19 @@ export async function POST(req) {
 
         const validatedData = validationSchema.safeParse(payload)
         if (!validatedData.success) {
-            return response(false, 401, 'Invalid or missing input field.')
+            return response(false, 400, 'Invalid or missing input field.')
         }
 
         const { email, password } = validatedData.data
         // get user data
 
-        const getUser = await UserModel.findOne({ email })
+        const getUser = await UserModel.findOne({ deletedAt: null, email }).select("+password")
         if (!getUser) {
             return response(false, 404, 'Invalid login credientials')
         }
         // if email is not verified resend email verification 
-        const isEmailVerfied = getUser.isEmailVerfied
-        if (!isEmailVerfied) {
+        const isEmailVerified = getUser.isEmailVerified
+        if (!isEmailVerified) {
             const secretKey = new TextEncoder().encode(process.env.JWT_SECRET);
             const token = await new jose.SignJWT({ id: getUser._id.toString() }).setIssuedAt()
                 .setExpirationTime('1h')
@@ -70,7 +70,7 @@ export async function POST(req) {
         const otpEmailStatus = await sendMail(email, "Your login verification code", otpEmail(otp))
 
         if (!otpEmailStatus.success) {
-            response(false, 400, 'Failed to send OTP')
+            return response(false, 400, 'Failed to send OTP')
         }
 
         return response(true, 200, `OTP send to ${email}`)

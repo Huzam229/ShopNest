@@ -1,5 +1,5 @@
 import { connectDB } from "../../../../lib/db";
-import { errorResponse, response } from "../../../../lib/helperFunction";
+import { response } from "../../../../lib/helperFunction";
 import * as jose from 'jose'
 import UserModel from "../../../../models/User.model";
 
@@ -39,11 +39,11 @@ export async function POST(req) {
             return response(false, 404, 'User Not Found')
         }
 
-        if (user.isEmailVerfied) {
+        if (user.isEmailVerified) {
             return response(true, 200, 'Email already verified')
         }
 
-        user.isEmailVerfied = true
+        user.isEmailVerified = true
         await user.save()
 
         return response(true, 200, 'Email verified successfully')

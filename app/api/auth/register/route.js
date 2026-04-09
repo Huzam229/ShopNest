@@ -10,7 +10,6 @@ import { errorResponse, response } from "../../../../lib/helperFunction.js";
 export async function POST(req) {
     try {
         await connectDB();
-
         const validationSchema = zSchema.pick({
             name: true,
             email: true,
@@ -41,7 +40,7 @@ export async function POST(req) {
             emailVerificationLink(`${process.env.NEXT_PUBLIC_BASE_URL}/auth/verify-email/${token}`)
         );
 
-        return response(true, 200, 'User registered successfully, please verify your email address');
+        return response(true, 200, 'User registered successfully, please check your email address and verify!');
 
     } catch (error) {
         console.log(error);
