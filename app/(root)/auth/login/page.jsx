@@ -32,8 +32,32 @@ const LoginPage = () => {
     },
   });
 
-  const handleLoginSubmit = async (values) => {
-    console.log(values)
+  const handleLoginSubmit = async (data) => {
+    setloading(true)
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password
+        })
+      })
+      console.log(res)
+      const result = await res.json();
+      console.log(result)
+      if (!result.success) {
+        throw new Error(result.message)
+      }
+      alert(result.message)
+      form.reset();
+    } catch (error) {
+      alert(error.message)
+    } finally {
+      setloading(false)
+    }
   }
 
   return (
@@ -74,7 +98,6 @@ const LoginPage = () => {
                 type="submit"
                 text="Login"
                 loading={loading}
-                onClick={handleLoginSubmit}
                 className="cursor-pointer p-5 w-full mt-2 text-[17px] hover:opacity-80 mb-3" />
             </div>
             <div className='text-center'>

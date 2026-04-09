@@ -1,11 +1,13 @@
 import { connectDB } from "@/lib/db"
-import { errorResponse, response } from "@/lib/helperFunction";
+import { errorResponse, generateOtp, response } from "@/lib/helperFunction";
 import { zSchema } from "@/lib/zodSchema";
 import UserModel from "@/models/User.model";
 import { z } from 'zod'
 import * as jose from 'jose'
 import { emailVerificationLink } from "@/email/emailVerificationLink";
 import { sendMail } from "@/lib/sendMail";
+import OTPModel from "@/models/Otp.model";
+import { otpEmail } from "@/email/otpEmail";
 
 export async function POST(req) {
 
@@ -30,7 +32,6 @@ export async function POST(req) {
         if (!getUser) {
             return response(false, 404, 'Invalid login credientials')
         }
-
         // if email is not verified resend email verification 
         const isEmailVerfied = getUser.isEmailVerfied
         if (!isEmailVerfied) {
@@ -49,10 +50,31 @@ export async function POST(req) {
                 'Your email is not verified.We have send verification link to your registered email address.')
         }
 
+        // password verification
+
         const isPasswordVerified = await getUser.comparePassword(password);
         if (!isPasswordVerified) {
             return response(false, 400, 'Invalid login credientials')
         }
+
+        // otp_generation
+        await OTPModel.deleteMany({ email });  // deleting old otps
+        const otp = generateOtp();
+
+        // storing otp in db
+        const newOtpData = new OTPModel({
+            email: email,
+            otp: otp
+        })
+        await newOtpData.save();
+        const otpEmailStatus = await sendMail(email, "Your login verification code", otpEmail(otp))
+
+        if (!otpEmailStatus.success) {
+            response(false, 400, 'Failed to send OTP')
+        }
+
+        return response(true, 200, `OTP send to ${email}`)
+
 
     } catch (error) {
         return errorResponse(error)
