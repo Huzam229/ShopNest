@@ -1,5 +1,5 @@
 export const otpEmail = (otp) => {
-    const html = `
+	const html = `
 <!DOCTYPE html>
 <html lang="en" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:v="urn:schemas-microsoft-com:vml">
 <head>
@@ -190,8 +190,6 @@ export const otpEmail = (otp) => {
 																	<p style="margin: 0;">If you did not request this,
 																		please ignore this message.</p>
 																	<p style="margin: 0;">Thank you,<br />
-                                                                     <a href="https://www.youtube.com/@developergoswami" target="_blank">Developer
-																		Goswami</a>
                                                                     </p>
 																</div>
 															</td>
@@ -214,5 +212,5 @@ export const otpEmail = (otp) => {
 
       `;
 
-    return html;
+	return html;
 };

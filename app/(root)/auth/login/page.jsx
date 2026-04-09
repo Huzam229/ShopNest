@@ -13,6 +13,7 @@ import { FaRegEyeSlash } from 'react-icons/fa';
 import { FaRegEye } from 'react-icons/fa6';
 import Link from 'next/link';
 import { WEBSITE_REGISTER } from '@/routes/WebRoutes';
+import { showToast } from '@/lib/showToast';
 
 const formSchema = zSchema.pick({
   email: true
@@ -51,10 +52,10 @@ const LoginPage = () => {
       if (!result.success) {
         throw new Error(result.message)
       }
-      alert(result.message)
+      showToast("success", result.message)
       form.reset();
     } catch (error) {
-      alert(error.message)
+      showToast("error", error.message)
     } finally {
       setloading(false)
     }

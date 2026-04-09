@@ -1,7 +1,6 @@
 import { Outfit } from "next/font/google";
 import "./globals.css";
-
-
+import { ToastContainer } from "react-toastify";
 const outfit = Outfit({ subsets: ["latin"], weight: ["400", "700"] });
 
 
@@ -16,7 +15,11 @@ export default function RootLayout({ children }) {
       lang="en"
       className={outfit.className}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <ToastContainer />
+        {children}
+
+      </body>
     </html>
   );
 }

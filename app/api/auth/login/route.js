@@ -13,7 +13,7 @@ export async function POST(req) {
 
     try {
         await connectDB();
-        const payload = req.json();
+        const payload = await req.json();
         const validationSchema = zSchema.pick({
             email: true,
         }).extend({
