@@ -1,11 +1,14 @@
-version: "3.9"
 services:
   shopnest:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
     container_name: shopnest-dev
     ports:
       - "3000:3000"
     volumes:
       - .:/app
       - /app/node_modules
-    command: npm run dev
+    environment:
+      - WATCHPACK_POLLING=true # hot reload fix for macOS
+    restart: unless-stopped
