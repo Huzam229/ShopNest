@@ -20,6 +20,7 @@ export async function POST(req) {
             return response(false, 401, 'Invalid or missing field', validateData.error)
         }
 
+        const { email } = validateData.data
         const getUser = await UserModel.findOne({ email });
         if (!getUser) {
             return response(false, 404, 'User not found')

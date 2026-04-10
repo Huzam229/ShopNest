@@ -57,7 +57,6 @@ const LoginPage = () => {
         throw new Error(result.message)
       }
       showToast("success", result.message)
-      // ✅ persist state
       localStorage.setItem("otpEmail", data.email)
       setOtpEmail(data.email)
       form.reset();
@@ -77,8 +76,8 @@ const LoginPage = () => {
 
 
   const handleOtpVerification = async (data) => {
-    setOtpVerificationloading(true)
     try {
+      setOtpVerificationloading(true)
       const res = await fetch("/api/auth/verify-otp", {
         method: "POST",
         headers: {
@@ -166,9 +165,6 @@ const LoginPage = () => {
 
           </>
         }
-
-
-
       </CardContent>
     </Card>
   )

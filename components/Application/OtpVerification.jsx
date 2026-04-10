@@ -1,5 +1,4 @@
 "use client";
-
 import { zSchema } from '@/lib/zodSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import React, { useState } from 'react';
@@ -10,9 +9,11 @@ import {
     InputOTPGroup,
     InputOTPSlot,
 } from "@/components/ui/input-otp";
+import { showToast } from '@/lib/showToast';
 
 const OtpVerification = ({ email, onSubmit, otpVerificationloading }) => {
 
+    console.log(email)
     const [isResendOtp, setIsResendOtp] = useState(false)
 
     const formSchema = zSchema.pick({
@@ -33,21 +34,19 @@ const OtpVerification = ({ email, onSubmit, otpVerificationloading }) => {
         await onSubmit(data);
     };
 
-    const resendOTP = async (data) => {
-        setIsResendOtp(true)
+    const resendOTP = async () => {
         try {
-            const res = await fetch("/api/auth/login", {
+            setIsResendOtp(true)
+            const res = await fetch("/api/auth/resend-otp", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    email: data.email,
+                    email,
                 })
             })
-            console.log(res)
             const result = await res.json();
-            console.log(result)
             if (!result.success) {
                 throw new Error(result.message)
             }
@@ -128,7 +127,7 @@ const OtpVerification = ({ email, onSubmit, otpVerificationloading }) => {
                             onClick={resendOTP}
                         >
                             Resend OTP
-                        </button> : <span>Resending....</span>}
+                        </button> : <span className='text-md'>Resending....</span>}
 
                     </div>
                 </div>
