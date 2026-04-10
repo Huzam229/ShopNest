@@ -76,8 +76,32 @@ const LoginPage = () => {
   }, [])
 
 
-  const handleOtpVerification = async () => {
-    alert("Hello OTP")
+  const handleOtpVerification = async (data) => {
+    setOtpVerificationloading(true)
+    try {
+      const res = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: data.email,
+          otp: data.otp
+        })
+      })
+      console.log(res)
+      const result = await res.json();
+      console.log(result)
+      if (!result.success) {
+        throw new Error(result.message)
+      }
+      showToast("success", result.message)
+      setOtpEmail('')
+    } catch (error) {
+      showToast("error", error.message)
+    } finally {
+      setOtpVerificationloading(false)
+    }
   }
 
   return (
