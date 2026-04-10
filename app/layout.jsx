@@ -1,8 +1,9 @@
 import { Outfit } from "next/font/google";
 import "./globals.css";
 import { ToastContainer } from "react-toastify";
-const outfit = Outfit({ subsets: ["latin"], weight: ["400", "700"] });
+import GlobalProvider from "@/components/Application/GlobalProvider";
 
+const outfit = Outfit({ subsets: ["latin"], weight: ["400", "700"] });
 
 export const metadata = {
   title: "Create Next App",
@@ -11,14 +12,12 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html
-      lang="en"
-      className={outfit.className}
-    >
-      <body className="min-h-full flex flex-col">
-        <ToastContainer />
-        {children}
-
+    <html lang="en" className={outfit.className}>
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
+        <GlobalProvider>
+          <ToastContainer position="top-right" autoClose={3000} />
+          {children}
+        </GlobalProvider>
       </body>
     </html>
   );

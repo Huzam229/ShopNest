@@ -18,4 +18,4 @@ export const authReducer = createSlice({
 })
 
 export const { login, logout } = authReducer.actions
-export default authReducer
+export default authReducer.reducer

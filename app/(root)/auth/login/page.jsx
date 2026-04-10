@@ -15,6 +15,8 @@ import Link from 'next/link';
 import { WEBSITE_REGISTER } from '@/routes/WebRoutes';
 import { showToast } from '@/lib/showToast';
 import OtpVerification from '@/components/Application/OtpVerification';
+import { useDispatch } from 'react-redux';
+import { login } from '@/store/reducer/authReducer';
 
 const formSchema = zSchema.pick({
   email: true
@@ -23,6 +25,7 @@ const formSchema = zSchema.pick({
 })
 const LoginPage = () => {
 
+  const dispatch = useDispatch();
   const [loading, setloading] = useState(false);
   const [otpVerificationloading, setOtpVerificationloading] = useState(false);
 
@@ -57,8 +60,8 @@ const LoginPage = () => {
         throw new Error(result.message)
       }
       showToast("success", result.message)
-      localStorage.setItem("otpEmail", data.email)
       setOtpEmail(data.email)
+      dispatch(login())
       form.reset();
     } catch (error) {
       showToast("error", error.message)
