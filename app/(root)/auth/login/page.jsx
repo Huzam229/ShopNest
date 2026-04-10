@@ -1,19 +1,20 @@
 'use client'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from "@/components/ui/input";
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Logo from "@/public/assets/images/logo-black.png";
 import Image from 'next/image'
 import { useForm } from 'react-hook-form';
 import { zSchema } from '@/lib/zodSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import LoadedButton from '@/components/Application/LoadedButton';
-import { z } from 'zod';
+import { email, z } from 'zod';
 import { FaRegEyeSlash } from 'react-icons/fa';
 import { FaRegEye } from 'react-icons/fa6';
 import Link from 'next/link';
 import { WEBSITE_REGISTER } from '@/routes/WebRoutes';
 import { showToast } from '@/lib/showToast';
+import OtpVerification from '@/components/Application/OtpVerification';
 
 const formSchema = zSchema.pick({
   email: true
@@ -23,8 +24,10 @@ const formSchema = zSchema.pick({
 const LoginPage = () => {
 
   const [loading, setloading] = useState(false);
+  const [otpVerificationloading, setOtpVerificationloading] = useState(false);
+
   const [isTypePassword, setIsTypePassword] = useState(true)
-  const [otpEmail, setOtpEmail] = useState()
+  const [otpEmail, setOtpEmail] = useState(null)
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -54,6 +57,8 @@ const LoginPage = () => {
         throw new Error(result.message)
       }
       showToast("success", result.message)
+      // ✅ persist state
+      localStorage.setItem("otpEmail", data.email)
       setOtpEmail(data.email)
       form.reset();
     } catch (error) {
@@ -61,6 +66,18 @@ const LoginPage = () => {
     } finally {
       setloading(false)
     }
+  }
+
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("otpEmail")
+    if (savedEmail) {
+      setOtpEmail(savedEmail)
+    }
+  }, [])
+
+
+  const handleOtpVerification = async () => {
+    alert("Hello OTP")
   }
 
   return (
@@ -121,6 +138,7 @@ const LoginPage = () => {
 
             {/* otp Form */}
 
+            <OtpVerification email={otpEmail} onSubmit={handleOtpVerification} otpVerificationloading={otpVerificationloading} />
 
           </>
         }
