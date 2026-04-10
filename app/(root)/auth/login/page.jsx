@@ -53,7 +53,6 @@ const LoginPage = () => {
           password: data.password
         })
       })
-      console.log(res)
       const result = await res.json();
       console.log(result)
       if (!result.success) {
@@ -61,7 +60,6 @@ const LoginPage = () => {
       }
       showToast("success", result.message)
       setOtpEmail(data.email)
-      dispatch(login())
       form.reset();
     } catch (error) {
       showToast("error", error.message)
@@ -69,14 +67,6 @@ const LoginPage = () => {
       setloading(false)
     }
   }
-
-  useEffect(() => {
-    const savedEmail = localStorage.getItem("otpEmail")
-    if (savedEmail) {
-      setOtpEmail(savedEmail)
-    }
-  }, [])
-
 
   const handleOtpVerification = async (data) => {
     try {
@@ -91,9 +81,8 @@ const LoginPage = () => {
           otp: data.otp
         })
       })
-      console.log(res)
       const result = await res.json();
-      console.log(result)
+      dispatch(login(result.data))
       if (!result.success) {
         throw new Error(result.message)
       }
