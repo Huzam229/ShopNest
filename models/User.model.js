@@ -24,13 +24,13 @@ const userSchema = new mongoose.Schema({
         trim: true
     },
     avatar: {
-        url: {
-            type: String,
-            trim: true
+        type: {
+            url: { type: String, default: "" },
+            public_id: { type: String, default: "" }
         },
-        public_id: {
-            type: String,
-            trim: true
+        default: {
+            url: "",
+            public_id: ""
         }
     },
     isEmailVerified: {
