@@ -111,7 +111,7 @@ const LoginPage = () => {
             <div className='mt-5'>
               <form onSubmit={form.handleSubmit(handleLoginSubmit)} className="space-y-4">
                 < div className='mb-5'>
-                  <label>Email</label>
+                  <label className='mb-1 block'>Email</label>
                   <Input className={`p-5`} placeholder="example@gmail.com" {...form.register("email")} />
                   {form.formState.errors.email && (
                     <p className="text-red-500 text-sm">
@@ -120,7 +120,7 @@ const LoginPage = () => {
                   )}
                 </div>
                 <div className='relative'>
-                  <label>Password</label>
+                  <label className='mb-1 block'>Password</label>
                   <Input className={`p-5`} type={isTypePassword ? 'password' : 'text'} placeholder="********" {...form.register("password")} />
                   {form.formState.errors.password && (
                     <p className="text-red-500 text-sm">

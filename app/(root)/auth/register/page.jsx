@@ -80,7 +80,7 @@ const RegisterPage = () => {
                 <div className='mt-5'>
                     <form onSubmit={form.handleSubmit(handleRegisterSubmit)} className="space-y-4">
                         < div className='mb-5'>
-                            <label>Full Name</label>
+                            <label className='mb-1 block'>Full Name</label>
                             <Input className={`p-5`} placeholder="Full Name" {...form.register("name")} type='text' />
                             {form.formState.errors.name && (
                                 <p className="text-red-500 text-sm">
@@ -89,7 +89,7 @@ const RegisterPage = () => {
                             )}
                         </div>
                         < div className='mb-5'>
-                            <label>Email</label>
+                            <label className='mb-1 block'>Email</label>
                             <Input className={`p-5`} placeholder="example@gmail.com" {...form.register("email")} type='email' />
                             {form.formState.errors.email && (
                                 <p className="text-red-500 text-sm">
@@ -98,7 +98,7 @@ const RegisterPage = () => {
                             )}
                         </div>
                         <div className='relative'>
-                            <label>Password</label>
+                            <label className='mb-1 block'>Password</label>
                             <Input className={`p-5`} type={isTypePassword ? 'password' : 'text'} placeholder="********" {...form.register("password")} />
                             {form.formState.errors.password && (
                                 <p className="text-red-500 text-sm">
@@ -107,7 +107,7 @@ const RegisterPage = () => {
                             )}
                         </div>
                         <div className='relative'>
-                            <label>Confirm Password</label>
+                            <label className='mb-1 block'>Confirm Password</label>
                             <Input className={`p-5`} type={isTypePassword ? 'password' : 'text'} placeholder="********" {...form.register("confirmPassword")} />
                             {form.formState.errors.confirmPassword && (
                                 <p className="text-red-500 text-sm">

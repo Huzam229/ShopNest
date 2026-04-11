@@ -84,8 +84,8 @@ const ResetPassword = () => {
                         </div>
                         <div className='mt-5'>
                             <form onSubmit={form.handleSubmit(handlePasswordReset)} className="space-y-4">
-                                < div className='mb-5'>
-                                    <label>Email</label>
+                                <div className='mb-5'>
+                                    <label className='mb-1 block'>Email</label>
                                     <Input className={`p-5`} placeholder="example@gmail.com" {...form.register("email")} />
                                     {form.formState.errors.email && (
                                         <p className="text-red-500 text-sm">
