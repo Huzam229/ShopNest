@@ -10,12 +10,16 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { WEBSITE_LOGIN } from '@/routes/WebRoutes';
 import Link from 'next/link';
+import { showToast } from '@/lib/showToast';
+import OtpVerification from '@/components/Application/OtpVerification';
+import ResetPasswordComponent from '@/components/Application/ResetPasswordComponent';
 
 const ResetPassword = () => {
 
     const [passwordResetLoading, setPasswordResetLoading] = useState(false);
     const [otpVerificationloading, setOtpVerificationloading] = useState(false);
     const [otpEmail, setOtpEmail] = useState(null)
+    const [isOTPVerfied, setIsOTPVerfied] = useState(false)
 
     const formSchema = zSchema.pick({
         email: true
@@ -29,23 +33,35 @@ const ResetPassword = () => {
     })
 
     const handlePasswordReset = async (data) => {
-
         setPasswordResetLoading(true)
         try {
-
+            const res = await fetch("/api/auth/reset-password/send-otp", {
+                method: 'POST',
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    email: data.email,
+                })
+            })
+            const result = await res.json();
+            if (!result.success) {
+                throw new Error(result.message)
+            }
+            setOtpEmail(data.email)
+            showToast("success", result.message)
         } catch (error) {
-
+            showToast("error", error.message)
         } finally {
             setPasswordResetLoading(false)
         }
 
     }
 
-
     const handleOtpVerification = async (data) => {
         try {
             setOtpVerificationloading(true)
-            const res = await fetch("/api/auth/verify-otp", {
+            const res = await fetch("/api/auth/reset-password/verify-otp", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -56,12 +72,11 @@ const ResetPassword = () => {
                 })
             })
             const result = await res.json();
-            dispatch(login(result.data))
             if (!result.success) {
                 throw new Error(result.message)
             }
             showToast("success", result.message)
-            setOtpEmail('')
+            setIsOTPVerfied(true)
         } catch (error) {
             showToast("error", error.message)
         } finally {
@@ -79,8 +94,8 @@ const ResetPassword = () => {
                 {
                     !otpEmail ? <>
                         <div className='text-center'>
-                            <h1 className='text-2xl font-bold'>Login Into Account</h1>
-                            <p className='text-muted-foreground text-lg'>Enter your email address and password to login</p>
+                            <h1 className='text-2xl font-bold'>Reset Password</h1>
+                            <p className='text-muted-foreground text-lg'>Enter your email address to verify your account</p>
                         </div>
                         <div className='mt-5'>
                             <form onSubmit={form.handleSubmit(handlePasswordReset)} className="space-y-4">
@@ -107,13 +122,15 @@ const ResetPassword = () => {
                                 </div>
                             </form>
                         </div>
-                    </> : <>
-
-                        {/* otp Form */}
-
-                        <OtpVerification email={otpEmail} onSubmit={handleOtpVerification} otpVerificationloading={otpVerificationloading} />
-
-                    </>
+                    </> :
+                        <>
+                            {
+                                // otp Form 
+                                !isOTPVerfied ?
+                                    <OtpVerification email={otpEmail} onSubmit={handleOtpVerification} otpVerificationloading={otpVerificationloading} />
+                                    : <ResetPasswordComponent email={otpEmail} />
+                            }
+                        </>
                 }
             </CardContent>
         </Card>
