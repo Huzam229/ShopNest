@@ -12,7 +12,7 @@ import { email, z } from 'zod';
 import { FaRegEyeSlash } from 'react-icons/fa';
 import { FaRegEye } from 'react-icons/fa6';
 import Link from 'next/link';
-import { WEBSITE_REGISTER } from '@/routes/WebRoutes';
+import { WEBSITE_REGISTER, WEBSITE_RESET_PASSWORD } from '@/routes/WebRoutes';
 import { showToast } from '@/lib/showToast';
 import OtpVerification from '@/components/Application/OtpVerification';
 import { useDispatch } from 'react-redux';
@@ -144,7 +144,7 @@ const LoginPage = () => {
                     <Link href={WEBSITE_REGISTER} className='text-primary underline'>Create Account</Link>
                   </div>
                   <div className='mt-2'>
-                    <Link href={''} className='text-primary underline'>Forgot Password</Link>
+                    <Link href={WEBSITE_RESET_PASSWORD} className='text-primary underline'>Forgot Password</Link>
                   </div>
                 </div>
               </form>
