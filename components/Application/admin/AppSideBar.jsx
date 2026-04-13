@@ -1,4 +1,5 @@
 "use client";
+
 import {
     Sidebar,
     SidebarContent,
@@ -30,7 +31,7 @@ import Link from "next/link";
 
 const AppSideBar = () => {
     return (
-        <Sidebar>
+        <Sidebar className='z-50'>
 
             <SidebarHeader className='border-b h-14 p-0'>
                 <div className="flex justify-between items-center px-4">
