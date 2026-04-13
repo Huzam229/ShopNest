@@ -12,11 +12,13 @@ import { email, z } from 'zod';
 import { FaRegEyeSlash } from 'react-icons/fa';
 import { FaRegEye } from 'react-icons/fa6';
 import Link from 'next/link';
-import { WEBSITE_REGISTER, WEBSITE_RESET_PASSWORD } from '@/routes/WebRoutes';
+import { USER_DASHBOARD, WEBSITE_REGISTER, WEBSITE_RESET_PASSWORD } from '@/routes/WebRoutes';
 import { showToast } from '@/lib/showToast';
 import OtpVerification from '@/components/Application/OtpVerification';
 import { useDispatch } from 'react-redux';
 import { login } from '@/store/reducer/authReducer';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { ADMIN_DASHBOARD } from '@/routes/AdminPanelRoutes';
 
 const formSchema = zSchema.pick({
   email: true
@@ -26,6 +28,8 @@ const formSchema = zSchema.pick({
 const LoginPage = () => {
 
   const dispatch = useDispatch();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [loading, setloading] = useState(false);
   const [otpVerificationloading, setOtpVerificationloading] = useState(false);
 
@@ -82,9 +86,15 @@ const LoginPage = () => {
         })
       })
       const result = await res.json();
-      dispatch(login(result.data))
       if (!result.success) {
         throw new Error(result.message)
+      }
+      dispatch(login(result.data))
+
+      if (searchParams.has('callback')) {
+        router.push(searchParams.get('callback'))
+      } else {
+        result.data.role === 'admin' ? router.push(ADMIN_DASHBOARD) : router.push(USER_DASHBOARD)
       }
       showToast("success", result.message)
       setOtpEmail('')
