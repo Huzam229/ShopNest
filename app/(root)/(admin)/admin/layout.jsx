@@ -1,8 +1,13 @@
+import AppSideBar from '@/components/Application/admin/AppSideBar'
+import { SidebarProvider } from '@/components/ui/sidebar'
 import React from 'react'
 
 const layout = ({ children }) => {
     return (
-        <div className='flex items-center justify-center h-screen w-screen'>{children}</div>
+        <SidebarProvider>
+            <AppSideBar />
+            <main>{children}</main>
+        </SidebarProvider>
     )
 }
 
