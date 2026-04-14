@@ -1,4 +1,4 @@
-name: Deploy Next.js (No Install on EC2)
+name: Deploy Next.js (Clean Full Reset)
 
 on:
   push:
@@ -18,6 +18,7 @@ jobs:
         with:
           node-version: 20
 
+      # 1️⃣ Install + Build on GitHub (NOT EC2)
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
@@ -33,11 +34,12 @@ jobs:
           NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL }}
           NODE_ENV: production
 
-      - name: Create deploy package
-        run: |
-          tar -czf app.tar.gz .next node_modules package.json package-lock.json public
+      # 2️⃣ Create small deploy package (NO node_modules)
+      - name: Create package
+        run: tar -czf app.tar.gz .next public package.json package-lock.json
 
-      - name: Copy files to EC2
+      # 3️⃣ Send to EC2
+      - name: Copy to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -46,6 +48,7 @@ jobs:
           source: "app.tar.gz"
           target: "~/ShopNest"
 
+      # 4️⃣ Setup + Run on EC2
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -53,12 +56,13 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
           script: |
+            mkdir -p ~/ShopNest
             cd ~/ShopNest
 
             echo "Extracting build..."
             tar -xzf app.tar.gz
 
-            echo "Setting env"
+            echo "Creating env file..."
             cat <<EOF > .env.local
             MONGODB_URI=${{ secrets.MONGODB_URI }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
@@ -70,10 +74,10 @@ jobs:
             NODE_ENV=production
             EOF
 
-            echo "Fix Node path"
-            export PATH=$HOME/.nvm/versions/node/v20.19.5/bin:$PATH
+            echo "Installing ONLY production deps (first time only safe)"
+            npm install --production
 
-            echo "Restarting app"
+            echo "Starting app"
             pm2 delete shopnest || true
             pm2 start npm --name "shopnest" -- start
             pm2 save
