@@ -1,16 +1,28 @@
-name: Deploy Next.js App to EC2
+name: Deploy Next.js (Production Style)
 
 on:
   push:
     branches:
       - main
+
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Build Next.js app
+        run: npm run build
 
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -21,14 +33,10 @@ jobs:
           script: |
             cd ~/ShopNest
 
-            echo "Pulling latest code..."
+            echo "Pull latest code only"
             git pull origin main
 
-            echo "Installing dependencies..."
-            npm install
-
-            echo "Building app..."
-            npm run build
-
-            echo "Restarting app..."
+            echo "Restarting app (NO install, NO build)"
             pm2 restart shopnest || pm2 start npm --name "shopnest" -- start
+
+            pm2 save
