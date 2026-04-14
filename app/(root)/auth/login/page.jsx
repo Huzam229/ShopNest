@@ -115,7 +115,7 @@ const LoginPage = () => {
         {
           !otpEmail ? <>
             <div className='text-center'>
-              <h1 className='text-2xl font-bold'>Login Into Account CI/CD</h1>
+              <h1 className='text-2xl font-bold'>Login Into Account CI/CD Version2</h1>
               <p className='text-muted-foreground text-lg'>Enter your email address and password to login</p>
             </div>
             <div className='mt-5'>

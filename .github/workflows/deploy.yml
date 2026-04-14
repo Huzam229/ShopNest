@@ -1,4 +1,4 @@
-name: Deploy Next.js (Clean Full Reset)
+name: Deploy Next.js (Production Clean)
 
 on:
   push:
@@ -18,7 +18,7 @@ jobs:
         with:
           node-version: 20
 
-      # 1️⃣ Install + Build on GitHub (NOT EC2)
+      # 1️⃣ Install + Build on GitHub
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
@@ -34,11 +34,11 @@ jobs:
           NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL }}
           NODE_ENV: production
 
-      # 2️⃣ Create small deploy package (NO node_modules)
+      # 2️⃣ Create minimal deploy package
       - name: Create package
         run: tar -czf app.tar.gz .next public package.json package-lock.json
 
-      # 3️⃣ Send to EC2
+      # 3️⃣ Upload to EC2
       - name: Copy to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -48,7 +48,7 @@ jobs:
           source: "app.tar.gz"
           target: "~/ShopNest"
 
-      # 4️⃣ Setup + Run on EC2
+      # 4️⃣ Deploy on EC2
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -56,10 +56,14 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
           script: |
-            mkdir -p ~/ShopNest
+            set -e
+
             cd ~/ShopNest
 
-            echo "Extracting build..."
+            echo "Cleaning old build..."
+            rm -rf .next
+
+            echo "Extracting new build..."
             tar -xzf app.tar.gz
 
             echo "Creating env file..."
@@ -74,10 +78,7 @@ jobs:
             NODE_ENV=production
             EOF
 
-            echo "Installing ONLY production deps (first time only safe)"
-            npm install --production
-
-            echo "Starting app"
+            echo "Restarting PM2..."
             pm2 delete shopnest || true
-            pm2 start npm --name "shopnest" -- start
+            pm2 start npm --name "shopnest" --cwd ~/ShopNest -- start
             pm2 save
