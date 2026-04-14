@@ -1,4 +1,4 @@
-name: Deploy Next.js (Production Style)
+name: Deploy Next.js (No Install on EC2)
 
 on:
   push:
@@ -21,10 +21,35 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Build Next.js app
+      - name: Build app
         run: npm run build
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
+          EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+          NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL }}
+          NODE_ENV: production
 
-      - name: Deploy to EC2 via SSH
+      # 🔥 CREATE ARCHIVE (IMPORTANT)
+      - name: Create deploy package
+        run: |
+          tar -czf app.tar.gz .next node_modules package.json package-lock.json public
+
+      # 🔥 COPY TO EC2
+      - name: Copy files to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          source: "app.tar.gz"
+          target: "~/ShopNest"
+
+      # 🔥 DEPLOY ON EC2 (NO INSTALL)
+      - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -33,10 +58,22 @@ jobs:
           script: |
             cd ~/ShopNest
 
-            echo "Pull latest code only"
-            git pull origin main
+            echo "Extracting build..."
+            tar -xzf app.tar.gz
 
-            echo "Restarting app (NO install, NO build)"
-            pm2 restart shopnest || pm2 start npm --name "shopnest" -- start
+            echo "Setting env"
+            cat <<EOF > .env.local
+            MONGODB_URI=${{ secrets.MONGODB_URI }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            EMAIL_HOST=${{ secrets.EMAIL_HOST }}
+            EMAIL_PORT=${{ secrets.EMAIL_PORT }}
+            EMAIL_USER=${{ secrets.EMAIL_USER }}
+            EMAIL_PASS=${{ secrets.EMAIL_PASS }}
+            NEXT_PUBLIC_BASE_URL=${{ secrets.NEXT_PUBLIC_BASE_URL }}
+            NODE_ENV=production
+            EOF
 
+            echo "Restarting app"
+            pm2 delete shopnest || true
+            pm2 start npm --name "shopnest" -- start
             pm2 save
