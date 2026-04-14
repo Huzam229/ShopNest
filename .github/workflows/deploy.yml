@@ -1,4 +1,4 @@
-name: Deploy Next.js (Production Clean)
+name: Deploy Next.js (Production)
 
 on:
   push:
@@ -6,12 +6,12 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
       # 1️⃣ Checkout code
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       # 2️⃣ Setup Node
@@ -21,10 +21,10 @@ jobs:
           node-version: 20
 
       # 3️⃣ Install dependencies
-      - name: Install dependencies
+      - name: Install deps
         run: npm install --legacy-peer-deps
 
-      # 4️⃣ Build Next.js app
+      # 4️⃣ Build Next.js
       - name: Build app
         run: npm run build
         env:
@@ -37,14 +37,9 @@ jobs:
           NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL }}
           NODE_ENV: production
 
-      # 5️⃣ Create deployment package
-      - name: Create package
-        run: |
-          tar -czf app.tar.gz \
-            .next \
-            public \
-            package.json \
-            package-lock.json
+      # 5️⃣ Create deploy package
+      - name: Create tar package
+        run: tar -czf app.tar.gz .next public package.json package-lock.json
 
       # 6️⃣ Upload to EC2
       - name: Copy to EC2
@@ -56,8 +51,8 @@ jobs:
           source: "app.tar.gz"
           target: "~/ShopNest"
 
-      # 7️⃣ Deploy on EC2 (FIXED ORDER)
-      - name: Deploy on EC2
+      # 7️⃣ Deploy on EC2
+      - name: Deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -68,13 +63,16 @@ jobs:
 
             cd ~/ShopNest
 
-            echo "📦 Extracting new build FIRST..."
+            echo "🧹 Cleaning old build..."
+            rm -rf .next public package.json package-lock.json
+
+            echo "📦 Extracting new build..."
             tar -xzf app.tar.gz
 
-            echo "🧹 Cleaning old build AFTER extraction..."
-            rm -rf .next app.tar.gz
+            echo "🗑 Removing tar file..."
+            rm -f app.tar.gz
 
-            echo "📝 Creating environment file..."
+            echo "⚙ Creating env file..."
             cat <<EOF > .env.local
             MONGODB_URI=${{ secrets.MONGODB_URI }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
@@ -86,12 +84,7 @@ jobs:
             NODE_ENV=production
             EOF
 
-            echo "♻️ Restarting PM2 safely..."
+            echo "♻ Restarting PM2..."
             pm2 delete shopnest || true
-            pm2 start npm \
-              --name "shopnest" \
-              --cwd ~/ShopNest \
-              --interpreter $(which node) \
-              -- start
-
+            pm2 start npm --name "shopnest" --cwd ~/ShopNest -- start
             pm2 save
