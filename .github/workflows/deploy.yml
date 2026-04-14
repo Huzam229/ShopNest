@@ -14,7 +14,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2️⃣ Setup Node.js
+      # 2️⃣ Setup Node
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -37,7 +37,7 @@ jobs:
           NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL }}
           NODE_ENV: production
 
-      # 5️⃣ Create deployment package (ONLY required files)
+      # 5️⃣ Create deployment package
       - name: Create package
         run: |
           tar -czf app.tar.gz \
@@ -46,7 +46,7 @@ jobs:
             package.json \
             package-lock.json
 
-      # 6️⃣ Copy package to EC2
+      # 6️⃣ Upload to EC2
       - name: Copy to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -56,7 +56,7 @@ jobs:
           source: "app.tar.gz"
           target: "~/ShopNest"
 
-      # 7️⃣ Deploy on EC2
+      # 7️⃣ Deploy on EC2 (FIXED ORDER)
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -68,11 +68,11 @@ jobs:
 
             cd ~/ShopNest
 
-            echo "🧹 Cleaning old build..."
-            rm -rf .next app.tar.gz
-
-            echo "📦 Extracting new build..."
+            echo "📦 Extracting new build FIRST..."
             tar -xzf app.tar.gz
+
+            echo "🧹 Cleaning old build AFTER extraction..."
+            rm -rf .next app.tar.gz
 
             echo "📝 Creating environment file..."
             cat <<EOF > .env.local
