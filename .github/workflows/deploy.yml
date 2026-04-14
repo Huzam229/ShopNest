@@ -33,12 +33,10 @@ jobs:
           NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL }}
           NODE_ENV: production
 
-      # 🔥 CREATE ARCHIVE (IMPORTANT)
       - name: Create deploy package
         run: |
           tar -czf app.tar.gz .next node_modules package.json package-lock.json public
 
-      # 🔥 COPY TO EC2
       - name: Copy files to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -48,7 +46,6 @@ jobs:
           source: "app.tar.gz"
           target: "~/ShopNest"
 
-      # 🔥 DEPLOY ON EC2 (NO INSTALL)
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -72,6 +69,9 @@ jobs:
             NEXT_PUBLIC_BASE_URL=${{ secrets.NEXT_PUBLIC_BASE_URL }}
             NODE_ENV=production
             EOF
+
+            echo "Fix Node path"
+            export PATH=$HOME/.nvm/versions/node/v20.19.5/bin:$PATH
 
             echo "Restarting app"
             pm2 delete shopnest || true
