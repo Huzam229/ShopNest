@@ -10,19 +10,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+      - name: Install deps
+        run: npm install --legacy-peer-deps
 
-      - name: Build with standalone output
+      - name: Build app
         run: npm run build
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
@@ -34,24 +33,11 @@ jobs:
           NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL }}
           NODE_ENV: production
 
-      # Improved: More robust standalone packaging
-      - name: Prepare standalone package
-        run: |
-          mkdir -p deploy/.next/static
-          cp -r .next/standalone/* deploy/ || true
-          cp -r .next/static/* deploy/.next/static/ 2>/dev/null || true
-          cp -r public deploy/ 2>/dev/null || true
-          cp package.json deploy/ 2>/dev/null || true
+      # IMPORTANT: include node_modules
+      - name: Create deploy package
+        run: tar -czf app.tar.gz .next public package.json package-lock.json node_modules
 
-          # Debug: Show what will be deployed
-          echo "=== Files in deploy folder ==="
-          ls -la deploy
-          du -sh deploy
-
-      - name: Create tar package
-        run: tar -czf app.tar.gz -C deploy .
-
-      - name: Copy to EC2 (SCP)
+      - name: Copy to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -59,8 +45,6 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           source: "app.tar.gz"
           target: "~/ShopNest"
-          strip_components: 0
-          debug: true
 
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.0.3
@@ -73,16 +57,16 @@ jobs:
 
             cd ~/ShopNest
 
-            echo "🧹 Cleaning old files..."
-            rm -rf .next server.js public node_modules app.tar.gz *.js || true
+            echo "🧹 Cleaning old build..."
+            rm -rf .next public package.json package-lock.json node_modules app.tar.gz
 
-            echo "📦 Extracting standalone build..."
+            echo "📦 Extracting new build..."
             tar -xzf app.tar.gz
 
-            echo "🗑 Removing tar..."
+            echo "🗑 Removing tar file..."
             rm -f app.tar.gz
 
-            echo "⚙ Creating .env.local..."
+            echo "⚙ Creating env file..."
             cat <<EOF > .env.local
             MONGODB_URI=${{ secrets.MONGODB_URI }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
@@ -92,14 +76,9 @@ jobs:
             EMAIL_PASS=${{ secrets.EMAIL_PASS }}
             NEXT_PUBLIC_BASE_URL=${{ secrets.NEXT_PUBLIC_BASE_URL }}
             NODE_ENV=production
-            PORT=3000
             EOF
 
-            echo "♻ Starting PM2 with standalone..."
+            echo "♻ Restarting PM2..."
             pm2 delete shopnest || true
-            pm2 start server.js --name "shopnest" --cwd ~/ShopNest
+            pm2 start npm --name "shopnest" --cwd ~/ShopNest -- start
             pm2 save
-
-            echo "✅ Deployment done!"
-            pm2 status
-            pm2 logs shopnest --lines 30
