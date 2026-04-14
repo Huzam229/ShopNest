@@ -10,18 +10,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 2️⃣ Setup Node.js
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      # 1️⃣ Install + Build on GitHub
+      # 3️⃣ Install dependencies
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
+      # 4️⃣ Build Next.js app
       - name: Build app
         run: npm run build
         env:
@@ -34,11 +37,16 @@ jobs:
           NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL }}
           NODE_ENV: production
 
-      # 2️⃣ Create minimal deploy package
+      # 5️⃣ Create deployment package (ONLY required files)
       - name: Create package
-        run: tar -czf app.tar.gz .next public package.json package-lock.json
+        run: |
+          tar -czf app.tar.gz \
+            .next \
+            public \
+            package.json \
+            package-lock.json
 
-      # 3️⃣ Upload to EC2
+      # 6️⃣ Copy package to EC2
       - name: Copy to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -48,7 +56,7 @@ jobs:
           source: "app.tar.gz"
           target: "~/ShopNest"
 
-      # 4️⃣ Deploy on EC2
+      # 7️⃣ Deploy on EC2
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -60,13 +68,13 @@ jobs:
 
             cd ~/ShopNest
 
-            echo "Cleaning old build..."
-            rm -rf .next
+            echo "🧹 Cleaning old build..."
+            rm -rf .next app.tar.gz
 
-            echo "Extracting new build..."
+            echo "📦 Extracting new build..."
             tar -xzf app.tar.gz
 
-            echo "Creating env file..."
+            echo "📝 Creating environment file..."
             cat <<EOF > .env.local
             MONGODB_URI=${{ secrets.MONGODB_URI }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
@@ -78,7 +86,12 @@ jobs:
             NODE_ENV=production
             EOF
 
-            echo "Restarting PM2..."
+            echo "♻️ Restarting PM2 safely..."
             pm2 delete shopnest || true
-            pm2 start npm --name "shopnest" --cwd ~/ShopNest -- start
+            pm2 start npm \
+              --name "shopnest" \
+              --cwd ~/ShopNest \
+              --interpreter $(which node) \
+              -- start
+
             pm2 save
