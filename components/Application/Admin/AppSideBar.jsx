@@ -8,7 +8,8 @@ import {
     SidebarMenuItem,
     SidebarHeader,
     SidebarMenuSub,
-    SidebarMenuSubItem
+    SidebarMenuSubItem,
+    useSidebar
 } from "@/components/ui/sidebar";
 
 import Image from "next/image";
@@ -30,6 +31,7 @@ import {
 import Link from "next/link";
 
 const AppSideBar = () => {
+    const { toggleSidebar } = useSidebar()
     return (
         <Sidebar className='z-50'>
 
@@ -49,7 +51,7 @@ const AppSideBar = () => {
                         alt="logo-white"
                     />
 
-                    <Button type="button" size="icon">
+                    <Button type="button" onClick={() => toggleSidebar()} size="icon" className="md:hidden">
                         <IoMdClose />
                     </Button>
                 </div>
