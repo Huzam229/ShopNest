@@ -1,4 +1,4 @@
-name: Deploy Next.js (Production)
+name: Deploy Next.js (Standalone Production)
 
 on:
   push:
@@ -10,22 +10,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout code
-      - name: Checkout
+      # 1️⃣ Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Setup Node
+      # 2️⃣ Setup Node
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
 
-      # 3. Install dependencies
+      # 3️⃣ Install deps
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
-      # 4. Build Next.js app
+      # 4️⃣ Build app (standalone)
       - name: Build app
         run: npm run build
         env:
@@ -38,18 +38,16 @@ jobs:
           NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL }}
           NODE_ENV: production
 
-      # 5. Create deploy package (FIXED ❗ no missing files)
+      # 5️⃣ Package only required files
       - name: Create deploy package
         run: |
           tar -czf app.tar.gz \
-          .next \
-          public \
-          package.json \
-          package-lock.json \
-          next.config.*
+            .next/standalone \
+            .next/static \
+            public
 
-      # 6. Copy package to EC2
-      - name: Copy to EC2
+      # 6️⃣ Upload to EC2
+      - name: Upload to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -58,7 +56,7 @@ jobs:
           source: "app.tar.gz"
           target: "~/ShopNest"
 
-      # 7. Deploy on EC2
+      # 7️⃣ Deploy on EC2
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -68,20 +66,26 @@ jobs:
           script: |
             set -e
 
-            cd ~/ShopNest
+            echo "🧹 Cleaning old build to free space..."
+            pm2 delete shopnest || true
+            rm -rf ~/ShopNest/.next ~/ShopNest/public
+            npm cache clean --force 2>/dev/null || true
 
-            echo "🧹 Cleaning old files..."
-            rm -rf .next public package.json package-lock.json app.tar.gz
+            mkdir -p ~/ShopNest
+            cd ~/ShopNest
 
             echo "📦 Extracting new build..."
             tar -xzf app.tar.gz
+
+            echo "🗑 Removing tar file immediately..."
             rm -f app.tar.gz
 
-            echo "⚙ Installing production dependencies..."
-            npm ci --omit=dev
+            echo "📁 Fixing standalone structure..."
+            cp -r .next/static .next/standalone/.next/
+            cp -r public .next/standalone/
 
             echo "⚙ Creating environment file..."
-            cat <<EOF > .env.local
+            cat > .next/standalone/.env << 'EOF'
             MONGODB_URI=${{ secrets.MONGODB_URI }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
             EMAIL_HOST=${{ secrets.EMAIL_HOST }}
@@ -91,9 +95,8 @@ jobs:
             NEXT_PUBLIC_BASE_URL=${{ secrets.NEXT_PUBLIC_BASE_URL }}
             NODE_ENV=production
             EOF
-
             echo "♻ Restarting PM2..."
-            pm2 restart shopnest || pm2 start npm --name "shopnest" -- start
+            pm2 start .next/standalone/server.js --name shopnest
             pm2 save
 
             echo "✅ Deployment successful!"
