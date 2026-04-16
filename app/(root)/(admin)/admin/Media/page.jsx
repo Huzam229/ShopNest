@@ -25,13 +25,20 @@ const MediaPage = () => {
     const [selectedMedia, setSelectedMedia] = useState([])
     const fetchMedia = async (page, deleteType) => {
         try {
-            const res = await fetch(`/api/media?page=${page}&limit=10&deleteType=${deleteType}`);
+            const res = await fetch(
+                `/api/media?page=${page}&limit=10&deleteType=${deleteType}`,
+                {
+                    credentials: "include",
+                }
+            );
+
             const result = await res.json();
+
             if (!result.success) {
                 throw new Error(result.message);
             }
-            return result.data;
 
+            return result.data;
         } catch (error) {
             console.log(error);
             throw error;

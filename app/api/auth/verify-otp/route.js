@@ -50,7 +50,7 @@ export async function POST(req) {
         cookieStore.set({
             name: 'access-token',
             value: token,
-            httpOnly: process.env.NODE_ENV === 'production',
+            httpOnly: true,
             path: '/',
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax'
