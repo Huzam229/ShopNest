@@ -34,6 +34,10 @@ const mediaSchema = new mongoose.Schema({
         type: Date,
         default: null,
         index: true
+    },
+    secure_url: {
+        type: String,
+        trim: true,
     }
 }, { timestamps: true })
 

@@ -39,6 +39,7 @@ jobs:
           NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${{ secrets.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME }}
           NEXT_PUBLIC_CLOUDINARY_API_KEY: ${{ secrets.NEXT_PUBLIC_CLOUDINARY_API_KEY }}
           CLOUDINARY_SECRET_KEY: ${{ secrets.CLOUDINARY_SECRET_KEY }}
+          NEXT_PUBLIC_CLOUDINARY_UPDATE_PRESET: ${{secrets.NEXT_PUBLIC_CLOUDINARY_UPDATE_PRESET}}
           NODE_ENV: production
 
       # 5️⃣ Package only required files
@@ -98,6 +99,7 @@ jobs:
             NEXT_PUBLIC_BASE_URL=${{ secrets.NEXT_PUBLIC_BASE_URL }}
             NEXT_PUBLIC_CLOUDINARY_API_KEY=${{ secrets.NEXT_PUBLIC_CLOUDINARY_API_KEY }}
             CLOUDINARY_SECRET_KEY=${{ secrets.CLOUDINARY_SECRET_KEY }}
+            NEXT_PUBLIC_CLOUDINARY_UPDATE_PRESET=${{ secrets.NEXT_PUBLIC_CLOUDINARY_UPDATE_PRESET }}
             NODE_ENV=production
             EOF
             echo "♻ Restarting PM2..."
