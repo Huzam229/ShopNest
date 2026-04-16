@@ -1,11 +1,12 @@
+"use client";
+
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
-import persistReducer from "redux-persist/es/persistReducer";
-import persistStore from "redux-persist/es/persistStore";
-import storage from "redux-persist/es/storage";
+import { persistReducer, persistStore } from "redux-persist";
+import storage from "redux-persist/lib/storage";
 import authReducer from "./reducer/authReducer";
 
 const rootReducer = combineReducers({
-    authStore: authReducer
+    authStore: authReducer,
 });
 
 const persistConfig = {
@@ -14,6 +15,7 @@ const persistConfig = {
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
+
 export const store = configureStore({
     reducer: persistedReducer,
     middleware: (getDefaultMiddleware) =>
