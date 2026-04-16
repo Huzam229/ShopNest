@@ -52,7 +52,7 @@ export async function POST(req) {
             value: token,
             httpOnly: true,
             path: '/',
-            secure: process.env.NODE_ENV === 'production',
+            secure: false,
             sameSite: 'lax'
         })
         // remove otp after validation
