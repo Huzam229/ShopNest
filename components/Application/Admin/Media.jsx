@@ -30,13 +30,13 @@ const Media = ({ media, handleDelete, deleteType, selectedMedia, setSelectedMedi
     const handleCopyLink = async (url) => {
         try {
             if (navigator?.clipboard?.writeText) {
-                await navigator.clipboard.writeText(text);
+                await navigator.clipboard.writeText(url);
                 showToast('success', 'Link Copied')
                 return;
             }
             // fallback (deprecated but still useful)
             const textarea = document.createElement("textarea");
-            textarea.value = text;
+            textarea.value = url;
             textarea.style.position = "fixed";
             textarea.style.opacity = "0";
             document.body.appendChild(textarea);
