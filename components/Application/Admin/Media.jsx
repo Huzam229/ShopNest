@@ -29,12 +29,28 @@ const Media = ({ media, handleDelete, deleteType, selectedMedia, setSelectedMedi
 
     const handleCopyLink = async (url) => {
         try {
-            await navigator.clipboard.writeText(url)
+            if (navigator?.clipboard?.writeText) {
+                await navigator.clipboard.writeText(text);
+                showToast('success', 'Link Copied')
+                return;
+            }
+            // fallback (deprecated but still useful)
+            const textarea = document.createElement("textarea");
+            textarea.value = text;
+            textarea.style.position = "fixed";
+            textarea.style.opacity = "0";
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textarea);
             showToast('success', 'Link Copied')
+
         } catch (err) {
-            console.log(err)
+            console.error("Copy failed:", err);
         }
     }
+
 
     return (
         <div className='border border-gray-200 dark:border-gray-800 relative group 
