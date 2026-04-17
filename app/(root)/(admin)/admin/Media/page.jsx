@@ -3,11 +3,19 @@
 import BreadCrumb from '@/components/Application/Admin/BreadCrumb'
 import Media from '@/components/Application/Admin/Media'
 import UploadMedia from '@/components/Application/Admin/UploadMedia'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { showToast } from '@/lib/showToast'
-import { ADMIN_DASHBOARD } from '@/routes/AdminPanelRoutes'
+import { Checkbox } from '@/components/ui/checkbox'
+import { ADMIN_DASHBOARD, ADMIN_MEDIA } from '@/routes/AdminPanelRoutes'
 import { useInfiniteQuery } from '@tanstack/react-query'
-import React, { useState } from 'react'
+import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
+import React, { useEffect, useState } from 'react'
+import { LuTrash } from 'react-icons/lu';
+import { MdOutlinePermMedia } from "react-icons/md";
+
+
+
 
 const breadcrumb = [
     {
@@ -23,6 +31,23 @@ const breadcrumb = [
 const MediaPage = () => {
     const [deleteType, setDeleteType] = useState('SD')
     const [selectedMedia, setSelectedMedia] = useState([])
+    const searchParams = useSearchParams();
+    const [selectAll, setSelectAll] = useState(false)
+
+    useEffect(() => {
+        if (searchParams) {
+            const trashOf = searchParams.get('trashof')
+            setSelectedMedia([])
+            if (trashOf) {
+                setDeleteType('PD')
+            } else {
+                setDeleteType('SD')
+            }
+        }
+
+
+    }, [searchParams])
+
     const fetchMedia = async (page, deleteType) => {
         try {
             const res = await fetch(
@@ -62,11 +87,23 @@ const MediaPage = () => {
         }
     });
 
-    const handledelete = () => {
+    const handledelete = (selectedMedia, deleteType) => {
 
     }
 
-    console.log(data)
+
+    const hanldeSelectAll = () => {
+        setSelectAll(!selectAll)
+
+    }
+    useEffect(() => {
+        if (selectAll) {
+            const ids = data?.pages?.flatMap(page => page.data?.map(m => m._id))
+            setSelectedMedia(ids)
+        } else {
+            setSelectedMedia([])
+        }
+    }, [selectAll])
 
     return (
         <div>
@@ -74,17 +111,67 @@ const MediaPage = () => {
             <Card className="py-0 rounded shadow-sm">
                 <CardHeader className="pt-3 px-3 border-b [.border-b]:pb-2">
                     <div className='flex justify-between items-center'>
-                        <h4 className='font-semibold test-xl uppercase'>Media</h4>
+                        <h4 className='font-semibold test-xl uppercase'>
+                            {deleteType === 'SD' ? 'Media' : 'Trash'}
+                        </h4>
                         <div className='flex items-center gap-5'>
-                            <UploadMedia />
+                            {
+                                deleteType === 'SD' && <UploadMedia />
+                            }
+                            <div className='flex gap-3'>
+                                {deleteType === 'SD' ?
+                                    <Button type='button' className='bg-red-500' >
+                                        <Link href={`${ADMIN_MEDIA}?trashof=media`} className='flex items-center justify-center gap-1' >
+                                            <LuTrash className='text-white' />
+                                            Trash
+                                        </Link>
+                                    </Button>
+                                    : <Button type='button'>
+                                        <Link href={`${ADMIN_MEDIA}`} className='flex items-center justify-center gap-1'  >
+                                            <MdOutlinePermMedia />
+                                            Back To Media
+                                        </Link>
+                                    </Button>
+                                }
+
+                            </div>
                         </div>
+
                     </div>
                 </CardHeader>
                 <CardContent>
 
+                    {
+                        selectedMedia.length > 0 && <div className='py-2 px-3 mb-2 
+                        cursor-pointer rounded flex justify-between items-center'
+                        >
+                            <label className='flex items-center justify-center gap-2'>
+                                <Checkbox checked={selectAll} className='border border-primary' onCheckedChange={hanldeSelectAll} />
+                                Select All</label>
+                            <div className='flex gap-2'>
+                                {
+                                    deleteType === 'SD' ? <Button
+                                        onClick={() => handledelete(selectedMedia, deleteType)}
+                                        className='bg-red-500 cursor-pointer hover:opacity-70'>Move To Trash
+                                    </Button> :
+                                        <>
+                                            <Button className="bg-green-500 cursor-pointer hover:opacity-70 "
+                                                onClick={() => handledelete(selectedMedia, 'RSD')}
+                                            >Restore
+                                            </Button>
+                                            <Button className='bg-red-500 cursor-pointer hover:opacity-70'
+                                                onClick={() => handledelete(selectedMedia, deleteType)}
+                                                variant='destructive'>Delete Permanently
+                                            </Button>
+                                        </>
+                                }
+                            </div>
+                        </div>
+                    }
+
 
                     {status === 'pending'
-                        ? <div>Loading...</div>
+                        ? <div className='mb-2'>Loading...</div>
                         :
                         status === 'error' ?
                             <div className='text-red-500 text-sm'>
