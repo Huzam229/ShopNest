@@ -3,6 +3,7 @@
 import BreadCrumb from '@/components/Application/Admin/BreadCrumb'
 import Media from '@/components/Application/Admin/Media'
 import UploadMedia from '@/components/Application/Admin/UploadMedia'
+import LoadedButton from '@/components/Application/LoadedButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -73,7 +74,6 @@ const MediaPage = () => {
         fetchNextPage,
         hasNextPage,
         isFetching,
-        isFetchingNextPage,
         status
     } = useInfiniteQuery({
         queryKey: ['media-data', deleteType],
@@ -129,7 +129,7 @@ const MediaPage = () => {
                             {deleteType === 'SD' ? 'Media' : 'Trash'}
                         </h4>
                         <div className='flex flex-wrap items-center gap-2'>
-                            {deleteType === 'SD' && <UploadMedia onUploadSuccess={handleUploadSuccess} />}
+                            {deleteType === 'SD' && <UploadMedia isMultiple={true} onUploadSuccess={handleUploadSuccess} />}
                             <div className='flex gap-3'>
                                 {deleteType === 'SD' ?
                                     <Button type='button' className='bg-red-500'>
@@ -150,7 +150,7 @@ const MediaPage = () => {
                         </div>
                     </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className='pb-5'>
 
                     {selectedMedia.length > 0 && (
                         <div className='py-2 px-3 mb-2 rounded flex flex-wrap justify-between items-center gap-2'>
@@ -227,6 +227,10 @@ const MediaPage = () => {
                                 </div>
                             </>
 
+                    }
+                    {hasNextPage &&
+                        <LoadedButton type='button' loading={isFetching} onClick={() => fetchNextPage()}
+                            className='flex items-center justify-center' text="Load More" />
                     }
                 </CardContent>
             </Card>
