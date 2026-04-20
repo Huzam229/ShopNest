@@ -30,7 +30,8 @@ const Media = ({ media, handleDelete, deleteType, selectedMedia, setSelectedMedi
     const handleCopyLink = async (url) => {
         try {
             if (navigator?.clipboard?.writeText) {
-                await navigator.clipboard.writeText(text);
+                await navigator.clipboard.writeText(url);
+                showToast('success', 'Link Copied');
                 return;
             }
             const textarea = document.createElement("textarea");
@@ -89,7 +90,8 @@ const Media = ({ media, handleDelete, deleteType, selectedMedia, setSelectedMedi
                                 </DropdownMenuItem>
                             </>
                         }
-                        <DropdownMenuItem className="cursor-pointer flex items-center gap-2">
+
+                        <DropdownMenuItem onClick={() => handleDelete([media._id], deleteType)} className="cursor-pointer flex items-center gap-2">
                             <LuTrash className="text-red-500" />
                             <span>
                                 {deleteType === 'SD'

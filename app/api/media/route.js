@@ -18,13 +18,11 @@ export async function GET(req) {
         const deleteType = searchParams.get("deleteType");
 
         let filter = {};
-
         if (deleteType === "SD") {
-            filter = { deleteAt: null };
+            filter = { deletedAt: null };
         } else if (deleteType === "PD") {
-            filter = { deleteAt: { $ne: null } };
+            filter = { deletedAt: { $ne: null } };
         }
-
         const mediaData = await MediaModel.find(filter)
             .sort({ createdAt: -1 })
             .skip(page * limit)

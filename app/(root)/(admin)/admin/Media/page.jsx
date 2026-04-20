@@ -6,6 +6,7 @@ import UploadMedia from '@/components/Application/Admin/UploadMedia'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
+import useDeleteMutation from '@/hooks/useDeleteMutation'
 import { ADMIN_DASHBOARD, ADMIN_MEDIA } from '@/routes/AdminPanelRoutes'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import Link from 'next/link'
@@ -44,8 +45,6 @@ const MediaPage = () => {
                 setDeleteType('SD')
             }
         }
-
-
     }, [searchParams])
 
     const fetchMedia = async (page, deleteType) => {
@@ -83,12 +82,24 @@ const MediaPage = () => {
         initialPageParam: 0,
         getNextPageParam: (lastPage, pages) => {
             const nextPage = pages.length;
-            return lastPage?.hasMore ? nextPage : undefined; // ✅ SAFE
+            return lastPage?.hasMore ? nextPage : undefined;
         }
     });
 
-    const handledelete = (selectedMedia, deleteType) => {
+    console.log(data)
 
+    const deleteMutation = useDeleteMutation('media-data', '/api/media/delete')
+
+    const handledelete = (selectedMedia, deleteType) => {
+        let c = true;
+        if (deleteType === 'PD') {
+            c = confirm("Are You Sure you want to delete the data permanently?")
+        }
+        if (c) {
+            deleteMutation.mutate({ ids: selectedMedia, deleteType }) // ✅ single object
+        }
+        setSelectAll(false);
+        setSelectedMedia([])
     }
 
 
@@ -161,7 +172,7 @@ const MediaPage = () => {
                                             </Button>
                                             <Button className='bg-red-500 cursor-pointer hover:opacity-70'
                                                 onClick={() => handledelete(selectedMedia, deleteType)}
-                                                variant='destructive'>Delete Permanently
+                                            >Delete Permanently
                                             </Button>
                                         </>
                                 }
@@ -177,24 +188,31 @@ const MediaPage = () => {
                             <div className='text-red-500 text-sm'>
                                 {error.message}
                             </div>
-                            : <div className='grid lg:grid-cols-5 sm:grid-cols-3 grid-cols-2 gap-2 mb-5'>
-                                {
-                                    data?.pages?.map((page, index) => (
-                                        <React.Fragment key={index}>
-                                            {
-                                                page?.data?.map((media) => (
-                                                    <Media key={media._id}
-                                                        media={media}
-                                                        handleDelete={handledelete}
-                                                        deleteType={deleteType}
-                                                        setSelectedMedia={setSelectedMedia}
-                                                        selectedMedia={selectedMedia} />
-                                                ))
-                                            }
-                                        </React.Fragment>
-                                    ))
-                                }
-                            </div>
+                            :
+                            <>
+                                {data?.pages?.flatMap(page => page.data)?.length === 0 && (
+                                    <div className='text-center text-red-500'>Nothing in Trash</div>
+                                )}                                <div className='grid lg:grid-cols-5 sm:grid-cols-3 grid-cols-2 gap-2 mb-5'>
+                                    {
+                                        data?.pages?.map((page, index) => (
+                                            <React.Fragment key={index}>
+                                                {
+                                                    page?.data?.map((media) => (
+                                                        <Media key={media._id}
+                                                            media={media}
+                                                            handleDelete={handledelete}
+                                                            deleteType={deleteType}
+                                                            setSelectedMedia={setSelectedMedia}
+                                                            selectedMedia={selectedMedia}
+                                                        />
+                                                    ))
+                                                }
+                                            </React.Fragment>
+                                        ))
+                                    }
+                                </div>
+                            </>
+
                     }
                 </CardContent>
             </Card>
