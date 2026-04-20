@@ -108,7 +108,7 @@ const Media = ({ media, handleDelete, deleteType, selectedMedia, setSelectedMedi
                     height={300}
                     width={300}
                     alt={media?.alt || 'Media Image'}
-                    className='object-cover w-full sm:h-[200px] h-[150px]:' />
+                    className='object-cover w-full sm:h-[200px] h-[150px]' />
             </div>
 
 

@@ -8,15 +8,12 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import useDeleteMutation from '@/hooks/useDeleteMutation'
 import { ADMIN_DASHBOARD, ADMIN_MEDIA } from '@/routes/AdminPanelRoutes'
-import { useInfiniteQuery } from '@tanstack/react-query'
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import { LuTrash } from 'react-icons/lu';
 import { MdOutlinePermMedia } from "react-icons/md";
-
-
-
 
 const breadcrumb = [
     {
@@ -34,6 +31,8 @@ const MediaPage = () => {
     const [selectedMedia, setSelectedMedia] = useState([])
     const searchParams = useSearchParams();
     const [selectAll, setSelectAll] = useState(false)
+    const queryClient = useQueryClient()
+
 
     useEffect(() => {
         if (searchParams) {
@@ -86,7 +85,6 @@ const MediaPage = () => {
         }
     });
 
-    console.log(data)
 
     const deleteMutation = useDeleteMutation('media-data', '/api/media/delete')
 
@@ -116,69 +114,82 @@ const MediaPage = () => {
         }
     }, [selectAll])
 
+    const handleUploadSuccess = () => {
+        queryClient.invalidateQueries({ queryKey: ['media-data'] })
+    }
+
+
     return (
         <div>
             <BreadCrumb breadCrumbData={breadcrumb} />
             <Card className="py-0 rounded shadow-sm">
                 <CardHeader className="pt-3 px-3 border-b [.border-b]:pb-2">
-                    <div className='flex justify-between items-center'>
-                        <h4 className='font-semibold test-xl uppercase'>
+                    <div className='flex flex-wrap justify-between items-center gap-2'>
+                        <h4 className='font-semibold text-xl uppercase'>
                             {deleteType === 'SD' ? 'Media' : 'Trash'}
                         </h4>
-                        <div className='flex items-center gap-5'>
-                            {
-                                deleteType === 'SD' && <UploadMedia />
-                            }
+                        <div className='flex flex-wrap items-center gap-2'>
+                            {deleteType === 'SD' && <UploadMedia onUploadSuccess={handleUploadSuccess} />}
                             <div className='flex gap-3'>
                                 {deleteType === 'SD' ?
-                                    <Button type='button' className='bg-red-500' >
-                                        <Link href={`${ADMIN_MEDIA}?trashof=media`} className='flex items-center justify-center gap-1' >
+                                    <Button type='button' className='bg-red-500'>
+                                        <Link href={`${ADMIN_MEDIA}?trashof=media`} className='flex items-center gap-1'>
                                             <LuTrash className='text-white' />
                                             Trash
                                         </Link>
                                     </Button>
-                                    : <Button type='button'>
-                                        <Link href={`${ADMIN_MEDIA}`} className='flex items-center justify-center gap-1'  >
+                                    :
+                                    <Button type='button'>
+                                        <Link href={`${ADMIN_MEDIA}`} className='flex items-center gap-1'>
                                             <MdOutlinePermMedia />
                                             Back To Media
                                         </Link>
                                     </Button>
                                 }
-
                             </div>
                         </div>
-
                     </div>
                 </CardHeader>
                 <CardContent>
 
-                    {
-                        selectedMedia.length > 0 && <div className='py-2 px-3 mb-2 
-                        cursor-pointer rounded flex justify-between items-center'
-                        >
-                            <label className='flex items-center justify-center gap-2'>
-                                <Checkbox checked={selectAll} className='border border-primary' onCheckedChange={hanldeSelectAll} />
-                                Select All</label>
-                            <div className='flex gap-2'>
-                                {
-                                    deleteType === 'SD' ? <Button
+                    {selectedMedia.length > 0 && (
+                        <div className='py-2 px-3 mb-2 rounded flex flex-wrap justify-between items-center gap-2'>
+                            {
+                                data?.pages?.flatMap(page => page.data)?.length > 1 &&
+                                <label className='flex items-center gap-2 cursor-pointer'>
+                                    <Checkbox
+                                        checked={selectAll}
+                                        className='border border-primary'
+                                        onCheckedChange={hanldeSelectAll}
+                                    />
+                                    Select All
+                                </label>
+
+                            }
+                            <div className='flex flex-wrap gap-2'>
+                                {deleteType === 'SD' ?
+                                    <Button
                                         onClick={() => handledelete(selectedMedia, deleteType)}
-                                        className='bg-red-500 cursor-pointer hover:opacity-70'>Move To Trash
-                                    </Button> :
-                                        <>
-                                            <Button className="bg-green-500 cursor-pointer hover:opacity-70 "
-                                                onClick={() => handledelete(selectedMedia, 'RSD')}
-                                            >Restore
-                                            </Button>
-                                            <Button className='bg-red-500 cursor-pointer hover:opacity-70'
-                                                onClick={() => handledelete(selectedMedia, deleteType)}
-                                            >Delete Permanently
-                                            </Button>
-                                        </>
+                                        className='bg-red-500 cursor-pointer hover:opacity-70'>
+                                        Move To Trash
+                                    </Button>
+                                    :
+                                    <>
+                                        <Button
+                                            className="bg-green-500 cursor-pointer hover:opacity-70"
+                                            onClick={() => handledelete(selectedMedia, 'RSD')}>
+                                            Restore
+                                        </Button>
+                                        <Button
+                                            className='bg-red-500 cursor-pointer hover:opacity-70'
+                                            onClick={() => handledelete(selectedMedia, deleteType)}>
+                                            Delete Permanently
+                                        </Button>
+                                    </>
                                 }
                             </div>
                         </div>
-                    }
+                    )}
 
 
                     {status === 'pending'
@@ -191,8 +202,11 @@ const MediaPage = () => {
                             :
                             <>
                                 {data?.pages?.flatMap(page => page.data)?.length === 0 && (
-                                    <div className='text-center text-red-500'>Nothing in Trash</div>
-                                )}                                <div className='grid lg:grid-cols-5 sm:grid-cols-3 grid-cols-2 gap-2 mb-5'>
+                                    <div>
+                                        {deleteType === 'PD' ? 'Nothing in Trash' : 'Nothing in Media'}
+                                    </div>
+                                )}
+                                <div className='grid lg:grid-cols-5 sm:grid-cols-3 grid-cols-2 gap-2 mb-5'>
                                     {
                                         data?.pages?.map((page, index) => (
                                             <React.Fragment key={index}>

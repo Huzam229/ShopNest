@@ -3,7 +3,7 @@ import { showToast } from "@/lib/showToast";
 import { CldUploadWidget } from "next-cloudinary";
 import { FiPlus } from 'react-icons/fi';
 
-const UploadMedia = ({ isMultiple }) => {
+const UploadMedia = ({ isMultiple, onUploadSuccess }) => {
 
     const handleOnError = (error) => {
         showToast('error', error.statusText)
@@ -35,12 +35,15 @@ const UploadMedia = ({ isMultiple }) => {
                     throw new Error(result.message)
                 }
                 showToast("success", result.message)
+                onUploadSuccess()
             } catch (error) {
                 showToast("error", error.message)
             }
         }
 
     }
+
+
 
     return (
         <CldUploadWidget signatureEndpoint="/api/cloudinary-signature"
