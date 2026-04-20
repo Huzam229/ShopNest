@@ -24,7 +24,7 @@ export async function GET(req) {
             filter = { deletedAt: { $ne: null } };
         }
         const mediaData = await MediaModel.find(filter)
-            .sort({ createdAt: -1 })
+            .sort({ createdAt: -1, _id: -1 })
             .skip(page * limit)
             .limit(limit)
             .lean();

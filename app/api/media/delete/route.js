@@ -65,7 +65,7 @@ export async function DELETE(req) {
         if (!media.length) {
             return response(false, 400, 'Data not Found')
         }
-        if (!deleteType === 'PD') {
+        if (deleteType !== 'PD') {
             return response(false, 400, 'Invalid Delete Operation. Delete Type should be PD for this route.')
 
         }

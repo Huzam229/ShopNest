@@ -112,7 +112,7 @@ const MediaPage = () => {
         } else {
             setSelectedMedia([])
         }
-    }, [selectAll])
+    }, [selectAll, data])
 
     const handleUploadSuccess = () => {
         queryClient.invalidateQueries({ queryKey: ['media-data'] })
@@ -230,7 +230,7 @@ const MediaPage = () => {
                     }
                     {hasNextPage &&
                         <LoadedButton type='button' loading={isFetching} onClick={() => fetchNextPage()}
-                            className='flex items-center justify-center' text="Load More" />
+                            className='flex items-center justify-center cursor-pointer' text="Load More" />
                     }
                 </CardContent>
             </Card>
