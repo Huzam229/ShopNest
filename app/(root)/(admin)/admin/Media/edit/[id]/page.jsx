@@ -82,7 +82,6 @@ const EditPage = ({ params }) => {
             }
             showToast("success", result.message)
             refetch()
-            form.reset();
         } catch (error) {
             showToast("error", error.message)
         } finally {
