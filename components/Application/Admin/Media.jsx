@@ -64,7 +64,7 @@ const Media = ({ media, handleDelete, deleteType, selectedMedia, setSelectedMedi
             <div className='absolute top-2 left-2 z-20'>
                 <Checkbox checked={selectedMedia.includes(media._id)}
                     onCheckedChange={() => handleCheck()}
-                    className='border border-primary cursor-pointer' />
+                    className='border-2 border-primary cursor-pointer' />
             </div>
             <div className='absolute top-2 right-2 z-20'>
                 <DropdownMenu>
