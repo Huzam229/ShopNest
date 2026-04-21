@@ -110,9 +110,13 @@ const Media = ({ media, handleDelete, deleteType, selectedMedia, setSelectedMedi
                     alt={media?.alt || 'Media Image'}
                     className='object-cover w-full sm:h-[200px] h-[150px]' />
             </div>
-
-
+            <div className='font-semibold text-center border-t border-gray-400 p-1'>
+                {
+                    media?.title
+                }
+            </div>
         </div>
+
     )
 }
 
