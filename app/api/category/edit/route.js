@@ -1,9 +1,9 @@
 import { connectDB } from "@/lib/db";
 import { errorResponse, response } from "@/lib/helperFunction";
 import { zSchema } from "@/lib/zodSchema";
-import MediaModel from "@/models/Media.model";
 import { isValidObjectId } from "mongoose";
 import { isAuthenticated } from "@/lib/authentication";
+import CategoryModel from "@/models/Category.model";
 
 
 export async function PUT(req) {
@@ -17,27 +17,28 @@ export async function PUT(req) {
         const payload = await req.json();
         const validateSchema = zSchema.pick({
             _id: true,
-            title: true,
-            alt: true
+            name: true,
+            slug: true
         })
         const validateData = validateSchema.safeParse(payload)
         if (!validateData.success) {
             return response(false, 400, 'Invalid or empty fields', validateData.error)
         }
-        const { _id, alt, title } = validateData.data
+        const { _id, name, slug } = validateData.data
+        console.log(payload)
 
         if (!isValidObjectId(_id)) {
             return response(false, 400, 'Invalid object Id.')
 
         }
-        const getMedia = await MediaModel.findById(_id)
-        if (!getMedia) {
+        const getCategory = await CategoryModel.findById(_id)
+        if (!getCategory) {
             return response(false, 404, 'Media Not Found')
         }
-        getMedia.alt = alt
-        getMedia.title = title
-        await getMedia.save()
-        return response(true, 200, 'Media Updated Successfully')
+        getCategory.name = name
+        getCategory.slug = slug
+        await getCategory.save()
+        return response(true, 200, 'Category Updated Successfully')
     } catch (error) {
         return errorResponse(error)
     }

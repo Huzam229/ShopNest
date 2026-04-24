@@ -110,7 +110,7 @@ const Media = ({ media, handleDelete, deleteType, selectedMedia, setSelectedMedi
                     alt={media?.alt || 'Media Image'}
                     className='object-cover w-full sm:h-[200px] h-[150px]' />
             </div>
-            <div className='font-semibold text-center border-t border-gray-400 p-1'>
+            <div className={`font-semibold text-center ${media?.title ? 'rounded-1xl border-2 mt-1 border-gray-300 ' : ''}   p-1`}>
                 {
                     media?.title
                 }

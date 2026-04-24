@@ -1,8 +1,7 @@
 import { connectDB } from "@/lib/db";
 import { errorResponse, response } from "@/lib/helperFunction"
-import MediaModel from "@/models/Media.model";
-import { isValidObjectId } from "mongoose";
 import { isAuthenticated } from "@/lib/authentication";
+import CategoryModel from "@/models/Category.model";
 
 
 export async function GET(req, { params }) {
@@ -14,23 +13,17 @@ export async function GET(req, { params }) {
         }
         await connectDB();
         const getParams = await params;
-        const id = getParams.id;
         const filter = {
             deletedAt: null
         }
 
-        if (!isValidObjectId(id)) {
-            return response(false, 404, "Invalid Object Id.")
+        const getCategory = await CategoryModel.find(filter).sort({ createdAt: -1 }).lean();
+
+        if (!getCategory) {
+            return response(false, 400, 'Collection Empty', getCategory)
 
         }
-
-        filter._id = id
-        const getMedia = await MediaModel.findOne(filter).lean();
-        if (!getMedia) {
-            return response(false, 404, "Media not found")
-        }
-
-        return response(true, 200, 'Media Found', getMedia)
+        return response(true, 200, 'Category Found', getCategory)
 
     } catch (error) {
 

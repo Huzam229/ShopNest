@@ -3,15 +3,12 @@
 import BreadCrumb from '@/components/Application/Admin/BreadCrumb'
 import DataTableWrapper from '@/components/Application/Admin/DataTableWrapper'
 import DeleteAction from '@/components/Application/Admin/DeleteAction'
-import EditAction from '@/components/Application/Admin/EditAction'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { DT_CATEGORY_COLUMN } from '@/lib/column'
 import { columnConfig } from '@/lib/helperFunction'
-import { ADMIN_CATEGORY, ADMIN_CATEGORY_ADD, ADMIN_CATEGORY_EDIT, ADMIN_DASHBOARD, ADMIN_TRASH } from '@/routes/AdminPanelRoutes'
-import Link from 'next/link'
+import { ADMIN_CATEGORY, ADMIN_DASHBOARD, ADMIN_TRASH } from '@/routes/AdminPanelRoutes'
+import { useSearchParams } from 'next/navigation'
 import React, { useCallback, useMemo } from 'react'
-import { FiPlus } from 'react-icons/fi';
 
 
 const breadCrumbData =
@@ -24,19 +21,33 @@ const breadCrumbData =
             href: ADMIN_CATEGORY,
             label: "Category"
         },
+        {
+            href: `${ADMIN_TRASH}?trashof=category`,
+            label: "Trash"
+        },
     ]
 
-const ShowCategory = () => {
+const trashConfig = {
+    category: {
+        title: 'Category Trash',
+        columns: DT_CATEGORY_COLUMN,
+        fetchUrl: '/api/category',
+        exportUrl: '/api/category/export',
+        deleteUrl: '/api/category/delete'
+    },
+}
+
+const Trash = () => {
+    const searchParams = useSearchParams();
+    const trashOf = searchParams.get('trashof')
+    const config = trashConfig[trashOf];
+
 
     const columns = useMemo(() => {
-        return columnConfig(DT_CATEGORY_COLUMN)
+        return columnConfig(config.columns, false, false, true)
     }, [])
-
     const action = useCallback((row, deleteType, handleDelete) => {
-        let actionMenu = []
-        actionMenu.push(<EditAction href={ADMIN_CATEGORY_EDIT(row.original._id)} key="edit" />)
-        actionMenu.push(<DeleteAction handleDelete={handleDelete} row={row} deleteType={deleteType} />)
-        return actionMenu
+        return [<DeleteAction handleDelete={handleDelete} row={row} deleteType={deleteType} />]
     }, [])
 
     return (
@@ -45,25 +56,18 @@ const ShowCategory = () => {
             <Card className="py-0 rounded shadow-sm gap-1">
                 <CardHeader className="pt-3 px-3 border-b [.border-b]:pb-2">
                     <div className='flex justify-between items-center mb-2'>
-                        <h4 className='font-semibold text-xl'>Show Category</h4>
-                        <Button>
-                            <FiPlus />
-                            <Link href={ADMIN_CATEGORY_ADD}> New Category
-                            </Link>
-                        </Button>
+                        <h4 className='font-semibold text-xl'>{config.title}</h4>
                     </div>
-
                 </CardHeader>
                 <CardContent className='pb-5 px-0'>
                     <DataTableWrapper
-                        queryKey='category-data'
-                        fetchUrl="/api/category"
+                        queryKey={`${trashOf}-data-deleted`}
+                        fetchUrl={config.fetchUrl}
                         initialPageSize={10}
                         columnsConfig={columns}
-                        exportEndPoint="/api/category/export"
-                        deleteEndPoint='/api/category/delete'
-                        deleteType="SD"
-                        trashView={`${ADMIN_TRASH}?trashof=category`}
+                        exportEndPoint={config.exportUrl}
+                        deleteEndPoint={config.deleteUrl}
+                        deleteType="PD"
                         createAction={action} />
                 </CardContent >
             </Card >
@@ -71,4 +75,4 @@ const ShowCategory = () => {
     )
 }
 
-export default ShowCategory
+export default Trash

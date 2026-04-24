@@ -4,6 +4,10 @@ import TopBar from '@/components/Application/Admin/TopBar'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import React from 'react'
 
+export const metadata = {
+    title: "Dashboard | ShopNest",
+};
+
 const layout = ({ children }) => {
     return (
         <ThemeProvider

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 
-const LoadedButton = ({ type, text, loading, onClick, className, ...props }) => {
+const LoadedButton = ({ type, text, loading, onClick, className, inputProps, ...props }) => {
     return (
         <Button
             type={type}

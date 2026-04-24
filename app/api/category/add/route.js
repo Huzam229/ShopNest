@@ -1,7 +1,8 @@
 import { connectDB } from "@/lib/db";
-import { errorResponse, isAuthenticated, response } from "@/lib/helperFunction";
+import { errorResponse, response } from "@/lib/helperFunction";
 import { zSchema } from "@/lib/zodSchema";
 import CategoryModel from "@/models/Category.model";
+import { isAuthenticated } from "@/lib/authentication";
 
 export async function POST(req) {
 

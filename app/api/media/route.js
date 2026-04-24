@@ -1,6 +1,8 @@
 import { connectDB } from "@/lib/db";
-import { errorResponse, isAuthenticated, response } from "@/lib/helperFunction";
+import { errorResponse, response } from "@/lib/helperFunction";
 import MediaModel from "@/models/Media.model";
+import { isAuthenticated } from "@/lib/authentication";
+
 
 export async function GET(req) {
     try {
