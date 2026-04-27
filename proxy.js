@@ -3,7 +3,10 @@ import { USER_DASHBOARD, WEBSITE_LOGIN } from "./routes/WebRoutes";
 import { jwtVerify } from "jose";
 import { ADMIN_DASHBOARD } from "./routes/AdminPanelRoutes";
 
-export async function middleware(request) {
+// Created once at module level, not on every request
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
+
+export async function proxy(request) {
     try {
         const pathname = request.nextUrl.pathname;
         const access_token = request.cookies.get('access-token')?.value;
@@ -15,10 +18,7 @@ export async function middleware(request) {
             return NextResponse.next();
         }
 
-        const { payload } = await jwtVerify(
-            access_token,
-            new TextEncoder().encode(process.env.JWT_SECRET)
-        );
+        const { payload } = await jwtVerify(access_token, JWT_SECRET);
         const role = payload.role;
 
         if (pathname.startsWith('/auth')) {
@@ -27,7 +27,7 @@ export async function middleware(request) {
         }
 
         if (pathname.startsWith('/admin') && role !== 'admin') {
-            return NextResponse.redirect(new URL(WEBSITE_LOGIN, request.url));
+            return NextResponse.redirect(new URL(USER_DASHBOARD, request.url));
         }
 
         if (pathname.startsWith('/my-account') && role !== 'user') {
