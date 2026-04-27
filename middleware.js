@@ -3,7 +3,7 @@ import { USER_DASHBOARD, WEBSITE_LOGIN } from "./routes/WebRoutes";
 import { jwtVerify } from "jose";
 import { ADMIN_DASHBOARD } from "./routes/AdminPanelRoutes";
 
-export async function proxy(request) {
+export async function middleware(request) {
     try {
         const pathname = request.nextUrl.pathname;
 
