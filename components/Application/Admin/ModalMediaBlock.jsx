@@ -5,6 +5,33 @@ import React from 'react'
 const ModalMediaBlock = ({ media, selectedMedia, setSelectedMedia, isMultiple }) => {
 
     const handleCheck = () => {
+        let newSelectedMedia = []
+        const isSelected = selectedMedia.find(m => m._id === media._id) ? true : false
+        if (isMultiple) {
+            // select multiple media
+            if (isSelected) {
+                // remove selected media from array
+                newSelectedMedia = selectedMedia.filter(m => m._id !== media._id)
+            }
+
+            // add new media into the array
+
+            newSelectedMedia = [...selectedMedia, {
+                _id: media._id,
+                secure_url: media.secure_url
+            }]
+
+            setSelectedMedia(newSelectedMedia)
+
+
+        } else {
+            // select single media
+            setSelectedMedia([{
+                _id: media._id,
+                secure_url: media.secure_url
+            }])
+        }
+
 
     }
     return (

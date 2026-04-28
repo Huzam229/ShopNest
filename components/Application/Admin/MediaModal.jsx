@@ -1,12 +1,15 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { keepPreviousData, useInfiniteQuery } from '@tanstack/react-query'
 import Image from 'next/image'
 import loading from '@/public/assets/images/loading.svg'
 import ModalMediaBlock from './ModalMediaBlock'
+import { showToast } from '@/lib/showToast'
 
 const MediaModal = ({ open, setOpen, selectedMedia, setSelectedMedia, isMultiple }) => {
+
+    const [previousSelected, setPreviousSelected] = useState([]);
 
     const fetchMedia = async (page) => {
         try {
@@ -52,15 +55,22 @@ const MediaModal = ({ open, setOpen, selectedMedia, setSelectedMedia, isMultiple
 
 
     const handleClear = () => {
-
+        setSelectedMedia([])
+        setPreviousSelected([])
+        showToast('success', 'Media Selection cleared.')
     }
 
     const handleClose = () => {
+        setSelectedMedia(previousSelected)
         setOpen(false)
     }
 
     const handleSelect = () => {
-
+        if (selectedMedia.length <= 0) {
+            return showToast('error', 'Please select a media')
+        }
+        setPreviousSelected(selectedMedia)
+        setOpen(false)
     }
     return (
 
@@ -128,7 +138,7 @@ const MediaModal = ({ open, setOpen, selectedMedia, setSelectedMedia, isMultiple
                                 Close
                             </Button>
                             <Button type='button' onClick={handleSelect} className='cursor-pointer'>
-                                Clear All
+                                Select
                             </Button>
                         </div>
                     </div>

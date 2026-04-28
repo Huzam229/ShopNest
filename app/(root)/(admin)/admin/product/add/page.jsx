@@ -12,6 +12,7 @@ import { showToast } from '@/lib/showToast'
 import { zSchema } from '@/lib/zodSchema'
 import { ADMIN_DASHBOARD, ADMIN_PRODUCT } from '@/routes/AdminPanelRoutes'
 import { zodResolver } from '@hookform/resolvers/zod'
+import Image from 'next/image'
 import React, { useEffect, useState } from 'react'
 import { useForm, useWatch, Controller } from 'react-hook-form'
 import slugify from 'slugify'
@@ -75,6 +76,20 @@ const AddProduct = () => {
         form.setValue('slug', nameValue ? slugify(nameValue).toLowerCase() : '')
     }, [nameValue])
 
+    // discount percentage calculation
+
+    const mrp = form.watch('mrp')
+    const sellingPrice = form.watch('sellingPrice')
+
+    useEffect(() => {
+        if (!mrp || mrp === 0) {
+            form.setValue('discountPercentage', 0)
+            return
+        }
+
+        const discountPercentage = ((mrp - sellingPrice) / mrp) * 100
+        form.setValue('discountPercentage', Math.round(discountPercentage))
+    }, [mrp, sellingPrice])
 
     const editor = (event, editor) => {
         const data = editor.getData();
@@ -83,11 +98,23 @@ const AddProduct = () => {
 
     const handleAddProduct = async (data) => {
         setLoading(true);
+        if (selectedMedia.length <= 0)
+            return showToast('error', 'Please Select Media')
+        const mediaIds = selectedMedia.map(m => m._id)
         try {
-            const res = await fetch("/api/product/add", {
+            const res = await fetch("/api/product/create", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data)
+                body: JSON.stringify({
+                    name: data.name,
+                    slug: data.slug,
+                    category: data.category,
+                    mrp: data.mrp,
+                    sellingPrice: data.sellingPrice,
+                    discountPercentage: data.discountPercentage,
+                    description: data.description,
+                    media: mediaIds
+                })
             })
             const result = await res.json();
             if (!result.success) throw new Error(result.message)
@@ -177,14 +204,18 @@ const AddProduct = () => {
                                 />
                                 <p className="text-red-500 text-sm">{errors.category?.message}</p>
                             </div>
-                            <div>
+                            <div className='relative'>
                                 <label className='mb-1 block'>Discount % <span className='text-red-500'>*</span></label>
                                 <Input
                                     type='number'
-                                    className='p-5'
-                                    placeholder="Enter discount %"
+                                    className='p-5 pr-10'
+                                    placeholder="Auto-generated"
                                     {...form.register("discountPercentage")}
+                                    readOnly
                                 />
+                                <span className="absolute left-9 top-9 text-gray-800 ">
+                                    %
+                                </span>
                                 <p className="text-red-500 text-sm">{errors.discountPercentage?.message}</p>
                             </div>
 
@@ -200,7 +231,6 @@ const AddProduct = () => {
                                         <Editor
                                             onChange={editor}
                                             initialData={field.value}
-
                                         />
                                     )}
                                 />
@@ -213,9 +243,22 @@ const AddProduct = () => {
                                 selectedMedia={selectedMedia}
                                 setSelectedMedia={setSelectedMedia}
                                 isMultiple={true} />
+
+                            {selectedMedia.length > 0 &&
+                                <div className='flex justify-center items-center flex-wrap mb-3 gap-2'>
+                                    {selectedMedia.map((media) => (
+                                        <div key={media._id} className='h-24 w-24 border'>
+                                            <Image src={media.secure_url} height={100} width={100} alt={media?.alt || ''}
+                                                className='size-full object-cover' />
+                                        </div>
+                                    ))}
+                                </div>
+                            }
+
                             <div className='bg-gray-50 dark:bg-card border w-[200px] mx-auto p-5 cursor-pointer' onClick={() => setOpen(true)}>
                                 <span className='font-semibold'>Select Media</span>
                             </div>
+
                         </div>
                         <div className='mt-4 flex items-center justify-center'>
                             <LoadedButton

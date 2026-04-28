@@ -13,9 +13,7 @@ import { showToast } from '@/lib/showToast';
 
 const OtpVerification = ({ email, onSubmit, otpVerificationloading }) => {
 
-    console.log(email)
     const [isResendOtp, setIsResendOtp] = useState(false)
-
     const formSchema = zSchema.pick({
         email: true,
         otp: true
@@ -90,7 +88,6 @@ const OtpVerification = ({ email, onSubmit, otpVerificationloading }) => {
                                 onChange={(value) => {
                                     const clean = value.replace(/[^0-9]/g, '').slice(0, 6);
                                     field.onChange(clean);
-                                    console.log(value)
                                 }}
                             >
                                 <InputOTPGroup className={`gap-2`}>
