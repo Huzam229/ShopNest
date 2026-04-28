@@ -14,3 +14,10 @@ export const ADMIN_CATEGORY = '/admin/category'
 // Trash Route
 
 export const ADMIN_TRASH = '/admin/trash'
+
+
+// Product Routes
+
+export const ADMIN_PRODUCT = '/admin/product'
+export const ADMIN_PRODUCT_ADD = '/admin/product/add'
+export const ADMIN_PRODUCT_EDIT = (id) => id ? `/admin/product/edit/${id}` : ''

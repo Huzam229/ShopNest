@@ -80,6 +80,7 @@ export async function GET(req) {
         const totalRowCount = await CategoryModel.countDocuments(matchQuery);
 
         return NextResponse.json({
+            success: true,
             data: getCategory,
             meta: { totalRowCount },
 
