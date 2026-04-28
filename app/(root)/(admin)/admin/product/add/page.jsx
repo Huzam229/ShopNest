@@ -213,7 +213,7 @@ const AddProduct = () => {
                                     {...form.register("discountPercentage")}
                                     readOnly
                                 />
-                                <span className="absolute left-9 top-9 text-gray-800 ">
+                                <span className="absolute left-9 top-9 text-gray-800 dark:text-white">
                                     %
                                 </span>
                                 <p className="text-red-500 text-sm">{errors.discountPercentage?.message}</p>
