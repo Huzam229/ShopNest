@@ -261,14 +261,14 @@ const EditProduct = ({ params }) => {
                                         name="description"
                                         render={({ field }) => (
                                             <Editor
+                                                key={field.value}
                                                 onChange={editor}
-                                                initialData={form.getValues('description')}
+                                                initialData={field.value || ""}
                                             />
                                         )}
                                     />
 
                                 }
-
                                 <p className="text-red-500 text-sm">{errors.description?.message}</p>
                             </div>
                         </div>
