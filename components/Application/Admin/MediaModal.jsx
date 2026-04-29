@@ -6,6 +6,7 @@ import Image from 'next/image'
 import loading from '@/public/assets/images/loading.svg'
 import ModalMediaBlock from './ModalMediaBlock'
 import { showToast } from '@/lib/showToast'
+import LoadedButton from '../LoadedButton'
 
 const MediaModal = ({ open, setOpen, selectedMedia, setSelectedMedia, isMultiple }) => {
 
@@ -24,7 +25,6 @@ const MediaModal = ({ open, setOpen, selectedMedia, setSelectedMedia, isMultiple
             if (!result.success) {
                 throw new Error(result.message);
             }
-            console.log(result.data)
             return result.data;
         } catch (error) {
             console.log(error);
@@ -129,6 +129,10 @@ const MediaModal = ({ open, setOpen, selectedMedia, setSelectedMedia, isMultiple
                     </div>
                     <div className='h-10 pt-3 border-t flex justify-between'>
                         <div>
+                            {hasNextPage &&
+                                <LoadedButton type='button' loading={isFetching} onClick={() => fetchNextPage()}
+                                    className='cursor-pointer mr-2' text="Load More" />
+                            }
                             <Button type='button' onClick={handleClear} className='cursor-pointer bg-red-500'>
                                 Clear All
                             </Button>

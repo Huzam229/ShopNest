@@ -13,7 +13,7 @@ import { zSchema } from '@/lib/zodSchema'
 import { ADMIN_DASHBOARD, ADMIN_PRODUCT } from '@/routes/AdminPanelRoutes'
 import { zodResolver } from '@hookform/resolvers/zod'
 import Image from 'next/image'
-import React, { useEffect, useState } from 'react'
+import React, { use, useEffect, useState } from 'react'
 import { useForm, useWatch, Controller } from 'react-hook-form'
 import slugify from 'slugify'
 
@@ -21,14 +21,16 @@ import slugify from 'slugify'
 const breadCrumbData = [
     { href: ADMIN_DASHBOARD, label: "Home" },
     { href: ADMIN_PRODUCT, label: "Product" },
-    { href: '', label: "Add Product" },
+    { href: '', label: "Edit Product" },
 ]
 
-const AddProduct = () => {
+const EditProduct = ({ params }) => {
+    const { id } = use(params)
     const [loading, setLoading] = useState(false);
     const [categoryOption, setCategoryOption] = useState([])
-    const { data: getCategory } = useFetch(`/api/category?deleteType=SD&size=10000`
+    const { data: getCategory, loading: getProductLoading } = useFetch(`/api/category?deleteType=SD&size=10000`
     )
+    const { data: productData } = useFetch(`/api/product/get/${id}`)
     const [discountPrice, setDiscountPrice] = useState(null)
 
     // media modal states
@@ -61,7 +63,7 @@ const AddProduct = () => {
     const form = useForm({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            name: "",
+            name: getCategory?.data?.name,
             slug: "",
             category: "",
             mrp: 0,
@@ -70,6 +72,32 @@ const AddProduct = () => {
             description: ""
         },
     });
+
+
+    useEffect(() => {
+        if (productData && productData.success) {
+            const product = productData?.data
+            form.reset({
+                name: product?.name || "",
+                slug: product?.slug || "",
+                category: product?.category || "",
+                mrp: product?.mrp || 0,
+                sellingPrice: product?.sellingPrice || 0,
+                discountPercentage: product?.discountPercentage || 0,
+                description: product?.description || ""
+            });
+
+            if (product?.media) {
+                const media = product.media.map((media => ({
+                    _id: media._id,
+                    secure_url: media.secure_url
+                })))
+                setSelectedMedia(media)
+            }
+
+        }
+
+    }, [productData])
 
     const nameValue = useWatch({ control: form.control, name: 'name' });
 
@@ -98,16 +126,17 @@ const AddProduct = () => {
         form.setValue('description', data)
     }
 
-    const handleAddProduct = async (data) => {
+    const handleEditProduct = async (data) => {
         setLoading(true);
         if (selectedMedia.length <= 0)
             return showToast('error', 'Please Select Media')
         const mediaIds = selectedMedia.map(m => m._id)
         try {
-            const res = await fetch("/api/product/create", {
-                method: "POST",
+            const res = await fetch("/api/product/edit", {
+                method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
+                    _id: id,
                     name: data.name,
                     slug: data.slug,
                     category: data.category,
@@ -121,7 +150,6 @@ const AddProduct = () => {
             const result = await res.json();
             if (!result.success) throw new Error(result.message)
             showToast("success", result.message)
-            form.reset();
         } catch (error) {
             showToast("error", error.message)
         } finally {
@@ -135,10 +163,10 @@ const AddProduct = () => {
             <BreadCrumb breadCrumbData={breadCrumbData} />
             <Card className="py-0 rounded shadow-sm">
                 <CardHeader className="pt-3 px-3 border-b [.border-b]:pb-2">
-                    <h4 className='font-semibold text-xl'>Add Product</h4>
+                    <h4 className='font-semibold text-xl'>Edit Product</h4>
                 </CardHeader>
                 <CardContent className='pb-5 pt-4'>
-                    <form onSubmit={form.handleSubmit(handleAddProduct)}>
+                    <form onSubmit={form.handleSubmit(handleEditProduct)}>
 
                         {/* Row 1 — Name & Slug */}
                         <div className='grid grid-cols-2 gap-4 mb-4'>
@@ -226,16 +254,21 @@ const AddProduct = () => {
                         <div className='grid grid-cols-1 mb-4 gap-5'>
                             <div>
                                 <label className='mb-1 block'>Product Description <span className='text-red-500'>*</span></label>
-                                <Controller
-                                    control={form.control}
-                                    name="description"
-                                    render={({ field }) => (
-                                        <Editor
-                                            onChange={editor}
-                                            initialData={field.value}
-                                        />
-                                    )}
-                                />
+                                {
+                                    !getProductLoading &&
+                                    <Controller
+                                        control={form.control}
+                                        name="description"
+                                        render={({ field }) => (
+                                            <Editor
+                                                onChange={editor}
+                                                initialData={form.getValues('description')}
+                                            />
+                                        )}
+                                    />
+
+                                }
+
                                 <p className="text-red-500 text-sm">{errors.description?.message}</p>
                             </div>
                         </div>
@@ -265,7 +298,7 @@ const AddProduct = () => {
                         <div className='mt-4 flex items-center justify-center'>
                             <LoadedButton
                                 type="submit"
-                                text="Add Product"
+                                text="Update Product"
                                 className="cursor-pointer p-5 w-50 mt-2 text-[17px] hover:opacity-80 mb-3"
                                 loading={loading}
                             />
@@ -277,4 +310,4 @@ const AddProduct = () => {
     )
 }
 
-export default AddProduct
+export default EditProduct
