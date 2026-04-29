@@ -16,6 +16,7 @@ import Image from 'next/image'
 import React, { use, useEffect, useState } from 'react'
 import { useForm, useWatch, Controller } from 'react-hook-form'
 import slugify from 'slugify'
+import { useRef } from 'react';
 
 
 const breadCrumbData = [
@@ -32,6 +33,8 @@ const EditProduct = ({ params }) => {
     )
     const { data: productData } = useFetch(`/api/product/get/${id}`)
     const [discountPrice, setDiscountPrice] = useState(null)
+    const editorInstanceRef = useRef(null);
+
 
     // media modal states
 
@@ -261,14 +264,13 @@ const EditProduct = ({ params }) => {
                                         name="description"
                                         render={({ field }) => (
                                             <Editor
-                                                key={field.value}
                                                 onChange={editor}
-                                                initialData={field.value || ""}
+                                                initialData={form.getValues('description')}
                                             />
                                         )}
                                     />
-
                                 }
+
                                 <p className="text-red-500 text-sm">{errors.description?.message}</p>
                             </div>
                         </div>
