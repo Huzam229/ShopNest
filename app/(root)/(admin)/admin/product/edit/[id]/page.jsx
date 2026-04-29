@@ -258,7 +258,7 @@ const EditProduct = ({ params }) => {
                             <div>
                                 <label className='mb-1 block'>Product Description <span className='text-red-500'>*</span></label>
                                 {
-                                    !getProductLoading &&
+                                    !getProductLoading && productData?.success &&
                                     <Controller
                                         control={form.control}
                                         name="description"
