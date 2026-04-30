@@ -13,22 +13,26 @@ import { zSchema } from '@/lib/zodSchema'
 import { ADMIN_DASHBOARD, ADMIN_PRODUCT } from '@/routes/AdminPanelRoutes'
 import { zodResolver } from '@hookform/resolvers/zod'
 import Image from 'next/image'
-import React, { useEffect, useState } from 'react'
+import React, { use, useEffect, useState } from 'react'
 import { useForm, useWatch, Controller } from 'react-hook-form'
 import slugify from 'slugify'
+import { useRef } from 'react';
+import { sizeData } from '@/lib/utils'
 
 
 const breadCrumbData = [
     { href: ADMIN_DASHBOARD, label: "Home" },
-    { href: ADMIN_PRODUCT, label: "Product" },
-    { href: '', label: "Add Product" },
+    { href: ADMIN_PRODUCT, label: "Product Variant" },
+    { href: '', label: "Edit Product Variant" },
 ]
 
-const AddProduct = () => {
+const EditProductVariant = ({ params }) => {
+    const { id } = use(params)
     const [loading, setLoading] = useState(false);
-    const [categoryOption, setCategoryOption] = useState([])
-    const { data: getCategory } = useFetch(`/api/category?deleteType=SD&size=10000`
+    const [productOption, setProductOption] = useState([])
+    const { data: getProduct } = useFetch(`/api/product?deleteType=SD&size=10000`
     )
+    const { data: productVaraintData } = useFetch(`/api/product-variant/get/${id}`)
     const [discountPrice, setDiscountPrice] = useState(null)
 
     // media modal states
@@ -37,45 +41,66 @@ const AddProduct = () => {
     const [selectedMedia, setSelectedMedia] = useState([])
 
     useEffect(() => {
-        if (getCategory && getCategory.success) {
-            const data = getCategory.data;
+        if (getProduct && getProduct.success) {
+            const data = getProduct.data;
             const option = data.map((item) => ({
                 label: item?.name,
                 value: item?._id
             }
             ))
-            setCategoryOption(option);
+            setProductOption(option);
         }
-    }, [getCategory])
+    }, [getProduct])
 
     const formSchema = zSchema.pick({
-        name: true,
-        slug: true,
-        category: true,
+        product: true,
+        sku: true,
+        color: true,
+        size: true,
         mrp: true,
         sellingPrice: true,
         discountPercentage: true,
-        description: true
     })
 
     const form = useForm({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            name: "",
-            slug: "",
-            category: "",
+            product: "",
+            sku: "",
+            color: "",
+            size: "",
             mrp: 0,
             sellingPrice: 0,
             discountPercentage: 0,
-            description: ""
         },
     });
 
-    const nameValue = useWatch({ control: form.control, name: 'name' });
 
     useEffect(() => {
-        form.setValue('slug', nameValue ? slugify(nameValue).toLowerCase() : '')
-    }, [nameValue])
+        if (productVaraintData && productVaraintData.success) {
+            const product = productVaraintData?.data
+            form.reset({
+                product: product?.product || "",
+                color: product?.color || "",
+                size: product?.size || "",
+                sku: product?.sku || "",
+                mrp: product?.mrp || 0,
+                sellingPrice: product?.sellingPrice || 0,
+                discountPercentage: product?.discountPercentage || 0,
+                description: product?.description || ""
+            });
+
+            if (product?.media) {
+                const media = product.media.map((media => ({
+                    _id: media._id,
+                    secure_url: media.secure_url
+                })))
+                setSelectedMedia(media)
+            }
+
+        }
+
+    }, [productVaraintData])
 
     // discount percentage calculation
 
@@ -93,35 +118,31 @@ const AddProduct = () => {
         form.setValue('discountPercentage', Math.round(discountPercentage))
     }, [mrp, sellingPrice])
 
-    const editor = (event, editor) => {
-        const data = editor.getData();
-        form.setValue('description', data)
-    }
 
-    const handleAddProduct = async (data) => {
+    const handleEditProductVariant = async (data) => {
         setLoading(true);
         if (selectedMedia.length <= 0)
             return showToast('error', 'Please Select Media')
         const mediaIds = selectedMedia.map(m => m._id)
         try {
-            const res = await fetch("/api/product/create", {
-                method: "POST",
+            const res = await fetch("/api/product-variant/edit", {
+                method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    name: data.name,
-                    slug: data.slug,
-                    category: data.category,
+                    _id: id,
+                    product: data.product,
+                    sku: data.sku,
+                    color: data.color,
+                    size: data.size,
                     mrp: data.mrp,
                     sellingPrice: data.sellingPrice,
                     discountPercentage: data.discountPercentage,
-                    description: data.description,
                     media: mediaIds
                 })
             })
             const result = await res.json();
             if (!result.success) throw new Error(result.message)
             showToast("success", result.message)
-            form.reset();
         } catch (error) {
             showToast("error", error.message)
         } finally {
@@ -135,36 +156,70 @@ const AddProduct = () => {
             <BreadCrumb breadCrumbData={breadCrumbData} />
             <Card className="py-0 rounded shadow-sm">
                 <CardHeader className="pt-3 px-3 border-b [.border-b]:pb-2">
-                    <h4 className='font-semibold text-xl'>Add Product</h4>
+                    <h4 className='font-semibold text-xl'>Edit Product Variant</h4>
                 </CardHeader>
                 <CardContent className='pb-5 pt-4'>
-                    <form onSubmit={form.handleSubmit(handleAddProduct)}>
+                    <form onSubmit={form.handleSubmit(handleEditProductVariant)}>
 
                         {/* Row 1 — Name & Slug */}
                         <div className='grid grid-cols-2 gap-4 mb-4'>
                             <div>
-                                <label className='mb-1 block'>Name <span className='text-red-500'>*</span></label>
-                                <Input
-                                    type='text'
-                                    className='p-5'
-                                    placeholder="Enter product name"
-                                    {...form.register("name")}
+                                <label className='mb-1 block'>Product <span className='text-red-500'>*</span></label>
+                                <Controller
+                                    control={form.control}
+                                    name="product"
+                                    render={({ field }) => (
+                                        <Select
+                                            options={productOption}
+                                            selected={field.value}
+                                            setSelected={field.onChange}
+                                            isMulti={false}
+                                        />
+                                    )}
                                 />
-                                <p className="text-red-500 text-sm">{errors.name?.message}</p>
+                                <p className="text-red-500 text-sm">{errors.product?.message}</p>
                             </div>
                             <div>
-                                <label className='mb-1 block'>Slug <span className='text-red-500'>*</span></label>
+                                <label className='mb-1 block'>SKU <span className='text-red-500'>*</span></label>
                                 <Input
                                     type='text'
                                     className='p-5'
-                                    placeholder="Auto-generated"
-                                    {...form.register("slug")}
+                                    placeholder="Enter sku"
+                                    {...form.register("sku")}
                                 />
-                                <p className="text-red-500 text-sm">{errors.slug?.message}</p>
+                                <p className="text-red-500 text-sm">{errors.sku?.message}</p>
                             </div>
                         </div>
 
-                        {/* Row 2 — MRP, Selling Price, Discount */}
+                        <div className='grid grid-cols-2 gap-4 mb-4'>
+                            <div>
+                                <label className='mb-1 block'>Color <span className='text-red-500'>*</span></label>
+                                <Input
+                                    type='text'
+                                    className='p-5'
+                                    placeholder="Enter Color"
+                                    {...form.register("color")}
+                                />
+                                <p className="text-red-500 text-sm">{errors.color?.message}</p>
+                            </div>
+                            <div>
+                                <label className='mb-1 block'>Size <span className='text-red-500'>*</span></label>
+                                <Controller
+                                    control={form.control}
+                                    name="size"
+                                    render={({ field }) => (
+                                        <Select
+                                            options={sizeData}
+                                            selected={field.value}
+                                            setSelected={field.onChange}
+                                            isMulti={false}
+                                        />
+                                    )}
+                                />
+                                <p className="text-red-500 text-sm">{errors.size?.message}</p>
+                            </div>
+                        </div>
+
                         <div className='grid grid-cols-2 gap-4 mb-4'>
                             <div>
                                 <label className='mb-1 block'>MRP <span className='text-red-500'>*</span></label>
@@ -188,24 +243,7 @@ const AddProduct = () => {
                             </div>
                         </div>
 
-                        {/* Row 3 — Category & Description */}
                         <div className='grid grid-cols-2 gap-4 mb-4'>
-                            <div>
-                                <label className='mb-1 block'>Category <span className='text-red-500'>*</span></label>
-                                <Controller
-                                    control={form.control}
-                                    name="category"
-                                    render={({ field }) => (
-                                        <Select
-                                            options={categoryOption}
-                                            selected={field.value}
-                                            setSelected={field.onChange}
-                                            isMulti={false}
-                                        />
-                                    )}
-                                />
-                                <p className="text-red-500 text-sm">{errors.category?.message}</p>
-                            </div>
                             <div className='relative'>
                                 <label className='mb-1 block'>Discount % <span className='text-red-500'>*</span></label>
                                 <Input
@@ -222,22 +260,6 @@ const AddProduct = () => {
                             </div>
 
 
-                        </div>
-                        <div className='grid grid-cols-1 mb-4 gap-5'>
-                            <div>
-                                <label className='mb-1 block'>Product Description <span className='text-red-500'>*</span></label>
-                                <Controller
-                                    control={form.control}
-                                    name="description"
-                                    render={({ field }) => (
-                                        <Editor
-                                            onChange={editor}
-                                            initialData={field.value}
-                                        />
-                                    )}
-                                />
-                                <p className="text-red-500 text-sm">{errors.description?.message}</p>
-                            </div>
                         </div>
                         <div className='md: col-span-2 border-dashed border rounded p-5 text-center'>
                             <MediaModal open={open}
@@ -258,14 +280,14 @@ const AddProduct = () => {
                             }
 
                             <div className='bg-gray-50 dark:bg-card border w-[200px] mx-auto p-5 cursor-pointer' onClick={() => setOpen(true)}>
-                                <span className='font-semibold'>Select Media</span>
+                                <span className='font-semibold'>Select Product Media</span>
                             </div>
 
                         </div>
                         <div className='mt-4 flex items-center justify-center'>
                             <LoadedButton
                                 type="submit"
-                                text="Add Product"
+                                text="Update Product Variant"
                                 className="cursor-pointer p-5 w-50 mt-2 text-[17px] hover:opacity-80 mb-3"
                                 loading={loading}
                             />
@@ -277,4 +299,4 @@ const AddProduct = () => {
     )
 }
 
-export default AddProduct
+export default EditProductVariant

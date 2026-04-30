@@ -38,7 +38,7 @@ export async function PUT(req) {
         }
         return response(true, 200, deleteType === 'SD' ? 'Data Move into Trash' : 'Data Restore')
     } catch (error) {
-        errorResponse(error)
+        return errorResponse(error)
     }
 }
 
@@ -73,6 +73,6 @@ export async function DELETE(req) {
     } catch (error) {
         await session.commitTransaction();
         session.endSession();
-        errorResponse(error)
+        return errorResponse(error)
     }
 }

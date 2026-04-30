@@ -4,7 +4,7 @@ import { isAuthenticated } from "@/lib/authentication";
 import ProductModel from "@/models/Product.model";
 
 
-export async function GET(req, { params }) {
+export async function GET(req) {
 
     try {
         const auth = await isAuthenticated('admin');
@@ -12,7 +12,6 @@ export async function GET(req, { params }) {
             return response(false, 403, "Unauthorized")
         }
         await connectDB();
-        const getParams = await params;
         const filter = {
             deletedAt: null
         }
